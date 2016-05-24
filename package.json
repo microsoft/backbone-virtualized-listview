@@ -1,0 +1,68 @@
+{
+  "main": "dist/backbone-virtualized-listview.js",
+  "version": "0.0.1",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "gulp test coveralls",
+    "prepublish": "gulp prepublish"
+  },
+  "license": "MIT",
+  "name": "backbone-virtualized-listview",
+  "description": "Virtualized list view for Backbone",
+  "keywords": [
+    "Backbone",
+    " virtualization",
+    " list",
+    " Web UI"
+  ],
+  "author": {
+    "name": "Wei Wei",
+    "email": "lyweiwei@outlook.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/backbone-virtualized-listview.git"
+  },
+  "devDependencies": {
+    "babel-core": "^6.9.0",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "chai": "^3.5.0",
+    "del": "^2.2.0",
+    "democase": "^0.1.9",
+    "eslint": "^2.10.2",
+    "eslint-config-xo": "^0.14.1",
+    "eslint-config-xo-space": "^0.13.0",
+    "gulp": "^3.9.1",
+    "gulp-coveralls": "^0.1.4",
+    "gulp-democase": "0.0.1",
+    "gulp-eslint": "^2.0.0",
+    "gulp-exclude-gitignore": "^1.0.0",
+    "gulp-file": "^0.3.0",
+    "gulp-util": "^3.0.7",
+    "istanbul-instrumenter-loader": "^0.2.0",
+    "jade": "^1.11.0",
+    "jade-loader": "^0.8.0",
+    "karma": "^0.13.22",
+    "karma-chrome-launcher": "^1.0.1",
+    "karma-coverage": "^1.0.0",
+    "karma-mocha": "^1.0.1",
+    "karma-mocha-reporter": "^2.0.3",
+    "karma-phantomjs-launcher": "^1.0.0",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^1.7.0",
+    "lodash": "^4.13.1",
+    "mocha": "^2.5.2",
+    "phantomjs-prebuilt": "^2.1.7",
+    "requirejs": "^2.2.0",
+    "source-map-loader": "^0.1.5",
+    "underscore": "^1.8.3",
+    "wdio-junit-reporter": "0.0.2",
+    "wdio-mocha-framework": "^0.2.13",
+    "webdriverio": "^4.0.7",
+    "webpack": "^1.13.1",
+    "webpack-stream": "^3.2.0"
+  }
+}
