@@ -1,5 +1,10 @@
-var backboneVirtualizedListview = require('../../js/index');
+import $ from 'jquery';
+import _ from 'underscore';
+import ListView from '../../js/index';
+import 'style!css!./index.css';
 
-document.open();
-document.write('<h1>' + backboneVirtualizedListview + '</h1>');
-document.close();
+const listView = window.listView = new ListView({
+  items: _.map(_.range(200), () => ({ text: _.random(10000) })),
+  // viewport: '.list-container',
+}).render();
+$('.list-container').append(listView.$el);
