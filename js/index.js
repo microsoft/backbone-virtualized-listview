@@ -153,7 +153,6 @@ class ListView extends Backbone.View {
     const context = new RedrawContext(this);
 
     let finished = false;
-    let containerHeight = this.$('.container').height();
 
     if (context.renderedTop > context.visibleBottom || context.renderedBottom < context.visibleTop) {
       this.$('.container').empty();
@@ -174,12 +173,12 @@ class ListView extends Backbone.View {
           _.compose(this.itemTemplate, m => m.toJSON())
         ));
 
-        const containerHeightNew = this.$('.container').height();
-        const delta = containerHeightNew - containerHeight;
+        const contentHeightNew = this.$('.container').height();
+        const delta = contentHeightNew - context.contentHeight;
         context.topPadding -= delta;
         context.renderedTop -= delta;
         context.indexFirst = index;
-        containerHeight = containerHeightNew;
+        context.contentHeight = contentHeightNew;
       } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.items.length) {
         const count = Math.ceil((context.visibleBottom - context.renderedBottom) / context.itemHeight);
         const index = Math.min(context.indexLast + count, this.items.length);
@@ -189,12 +188,12 @@ class ListView extends Backbone.View {
           _.compose(this.itemTemplate, m => m.toJSON())
         ));
 
-        const containerHeightNew = this.$('.container').height();
-        const delta = containerHeightNew - containerHeight;
+        const contentHeightNew = this.$('.container').height();
+        const delta = contentHeightNew - context.contentHeight;
         context.bottomPadding -= delta;
         context.renderedBottom += delta;
         context.indexLast = index;
-        containerHeight = containerHeightNew;
+        context.contentHeight = contentHeightNew;
       } else {
         finished = true;
       }
@@ -209,13 +208,13 @@ class ListView extends Backbone.View {
           removal.push(el);
           context.renderedTop += height;
           innerContext.topPadding += height;
-          containerHeight -= height;
+          innerContext.contentHeight -= height;
           innerContext.indexFirst++;
         } else if (top > context.visibleBottom + this.viewport.height / 2) {
           removal.push(el);
           context.renderedBottom -= height;
           innerContext.bottomPadding += height;
-          containerHeight -= height;
+          innerContext.contentHeight -= height;
           innerContext.indexLast--;
         }
       });
@@ -223,7 +222,7 @@ class ListView extends Backbone.View {
 
     _.each(removal, node => node.remove());
 
-    context.itemHeight = containerHeight / (context.indexLast - context.indexFirst);
+    context.itemHeight = context.contentHeight / (context.indexLast - context.indexFirst);
     const topPaddingNew = context.itemHeight * context.indexFirst;
     if (Math.abs(topPaddingNew - context.topPadding) > 0.001) {
       context.scrollTop += topPaddingNew - context.topPadding;
