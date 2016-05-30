@@ -66,6 +66,31 @@ class ElementViewport extends Viewport {
   }
 }
 
+const stateProperties = [
+  'indexFirst',
+  'indexLast',
+  'topPadding',
+  'bottomPadding',
+  'itemHeight',
+];
+
+class RedrawContext {
+  constructor(listView) {
+    this.listView = listView;
+    _.extend(this, _.pick(listView, stateProperties));
+    this.scrollTop = listView.viewport.scrollTop;
+  }
+
+  commit() {
+    _.extend(this.listView, _.pick(this, stateProperties));
+    this.listView.scrollTop = this.scrollTop;
+    this.listView.$container.css({
+      'padding-top': this.topPadding,
+      'padding-bottom': this.bottomPadding,
+    });
+  }
+}
+
 class ListView extends Backbone.View {
   initialize({
     listTemplate = defaultListTemplate,
@@ -118,67 +143,60 @@ class ListView extends Backbone.View {
 
   redraw() {
     const visibleArea = this.getVisibleArea();
-    console.log(visibleArea);
     const renderedArea = this.getRenderedArea();
-    let {
-      topPadding,
-      bottomPadding,
-      indexFirst,
-      indexLast,
-      itemHeight,
-    } = this;
-    let scrollTop = this.viewport.scrollTop;
+    const context = new RedrawContext(this);
+
     let finished = false;
     let containerHeight = this.$('.container').height();
 
     if (renderedArea.top > visibleArea.bottom || renderedArea.bottom < visibleArea.top) {
       this.$('.container').empty();
-      const index = Math.floor(visibleArea.top / itemHeight);
-      topPadding = index * itemHeight;
-      bottomPadding = (this.items.length - index) * itemHeight;
-      indexFirst = indexLast = index;
+      const index = Math.floor(visibleArea.top / context.itemHeight);
+      context.topPadding = index * context.itemHeight;
+      context.bottomPadding = (this.items.length - index) * context.itemHeight;
+      context.indexFirst = context.indexLast = index;
       renderedArea.top = renderedArea.bottom = visibleArea.top;
     }
 
     while (!finished) {
-      if (renderedArea.top > visibleArea.top && indexFirst > 0) {
-        const count = Math.ceil((renderedArea.top - visibleArea.top) / itemHeight);
-        const index = Math.max(indexFirst - count, 0);
+      if (renderedArea.top > visibleArea.top && context.indexFirst > 0) {
+        const count = Math.ceil((renderedArea.top - visibleArea.top) / context.itemHeight);
+        const index = Math.max(context.indexFirst - count, 0);
 
         this.$('.container').prepend(_.map(
-          this.items.slice(index, indexFirst),
+          this.items.slice(index, context.indexFirst),
           _.compose(this.itemTemplate, m => m.toJSON())
         ));
 
         const containerHeightNew = this.$('.container').height();
         const delta = containerHeightNew - containerHeight;
-        topPadding -= delta;
+        context.topPadding -= delta;
         renderedArea.top -= delta;
-        indexFirst = index;
+        context.indexFirst = index;
         containerHeight = containerHeightNew;
-      } else if (renderedArea.bottom < visibleArea.bottom && indexLast < this.items.length) {
-        const count = Math.ceil((visibleArea.bottom - renderedArea.bottom) / itemHeight);
-        const index = Math.min(indexLast + count, this.items.length);
+      } else if (renderedArea.bottom < visibleArea.bottom && context.indexLast < this.items.length) {
+        const count = Math.ceil((visibleArea.bottom - renderedArea.bottom) / context.itemHeight);
+        const index = Math.min(context.indexLast + count, this.items.length);
 
         this.$('.container').append(_.map(
-          this.items.slice(indexLast, index),
+          this.items.slice(context.indexLast, index),
           _.compose(this.itemTemplate, m => m.toJSON())
         ));
 
         const containerHeightNew = this.$('.container').height();
         const delta = containerHeightNew - containerHeight;
-        bottomPadding -= delta;
+        context.bottomPadding -= delta;
         renderedArea.bottom += delta;
-        indexLast = index;
+        context.indexLast = index;
         containerHeight = containerHeightNew;
       } else {
         finished = true;
       }
     }
     const removal = [];
-    const rectContainer = this.$('.container').get(0).getBoundingClientRect();
-    const delta = -rectContainer.top + topPadding - this.topPadding;
-    this.$('.container').children().each((index, el) => {
+    const rectContainer = this.$container.get(0).getBoundingClientRect();
+    const delta = -rectContainer.top + context.topPadding - this.topPadding;
+    this.$container.children().each((index, el) => {
       let { top, bottom, height } = el.getBoundingClientRect();
 
       top += delta;
@@ -187,43 +205,30 @@ class ListView extends Backbone.View {
       if (bottom < visibleArea.top - this.viewport.height / 2) {
         removal.push(el);
         renderedArea.top += height;
-        topPadding += height;
+        context.topPadding += height;
         containerHeight -= height;
-        indexFirst++;
+        context.indexFirst++;
       } else if (top > visibleArea.bottom + this.viewport.height / 2) {
         removal.push(el);
         renderedArea.bottom -= height;
-        bottomPadding += height;
+        context.bottomPadding += height;
         containerHeight -= height;
-        indexLast--;
+        context.indexLast--;
       }
     });
 
     _.each(removal, node => node.remove());
 
-    itemHeight = containerHeight / (indexLast - indexFirst);
-    const topPaddingNew = itemHeight * indexFirst;
-    if (Math.abs(topPaddingNew - topPadding) > 0.001) {
-      scrollTop += topPaddingNew - topPadding;
-      topPadding = topPaddingNew;
+    context.itemHeight = containerHeight / (context.indexLast - context.indexFirst);
+    const topPaddingNew = context.itemHeight * context.indexFirst;
+    if (Math.abs(topPaddingNew - context.topPadding) > 0.001) {
+      context.scrollTop += topPaddingNew - context.topPadding;
+      context.topPadding = topPaddingNew;
     }
 
-    bottomPadding = itemHeight * (this.items.length - indexLast);
+    context.bottomPadding = context.itemHeight * (this.items.length - context.indexLast);
 
-    _.extend(this, {
-      topPadding,
-      bottomPadding,
-      indexFirst,
-      indexLast,
-      itemHeight,
-    });
-
-    console.log(topPadding);
-    this.$('.container').css({
-      'padding-top': topPadding,
-      'padding-bottom': bottomPadding,
-    });
-    this.viewport.scrollTop = scrollTop;
+    context.commit();
   }
 
   render() {
