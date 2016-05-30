@@ -27,7 +27,8 @@ class WindowViewport extends Viewport {
   }
 
   get top() {
-    return window.scrollY;
+    // return window.scrollY;
+    return 0;
   }
 
   get height() {
@@ -50,7 +51,7 @@ class ElementViewport extends Viewport {
   }
 
   get top() {
-    return this.$el.offset().top;
+    return this.$el.get(0).getBoundingClientRect().top;
   }
 
   get height() {
@@ -82,6 +83,10 @@ class RedrawContext {
 
     const contentRect = this.listView.$container.get(0).getBoundingClientRect();
     this.contentTop = contentRect.top;
+    this.contentHeight = this.listView.$container.height;
+    this.contentBottom = contentRect.top + this.contentHeight;
+    this.visibleTop = Math.max(this.listView.viewport.top - this.contentTop, 0);
+    this.visibleBottom = this.visibleTop + this.listView.viewport.height;
   }
 
   commit() {
@@ -142,16 +147,6 @@ class ListView extends Backbone.View {
     this.viewport.$el.off('resize', this.redraw);
   }
 
-  getVisibleArea() {
-    const topViewport = this.viewport.top;
-    const botViewport = this.viewport.bottom;
-    const topContent = _.result(this.$('.container').offset(), 'top', 0);
-    return {
-      top: Math.max(topViewport - topContent, 0),
-      bottom: Math.max(botViewport - topContent, 0),
-    };
-  }
-
   getRenderedArea() {
     const topRendered = this.topPadding;
     const botRendered = this.topPadding + this.$('.container').height();
@@ -162,25 +157,24 @@ class ListView extends Backbone.View {
   }
 
   redraw() {
-    const visibleArea = this.getVisibleArea();
     const renderedArea = this.getRenderedArea();
     const context = new RedrawContext(this);
 
     let finished = false;
     let containerHeight = this.$('.container').height();
 
-    if (renderedArea.top > visibleArea.bottom || renderedArea.bottom < visibleArea.top) {
+    if (renderedArea.top > context.visibleBottom || renderedArea.bottom < context.visibleTop) {
       this.$('.container').empty();
-      const index = Math.floor(visibleArea.top / context.itemHeight);
+      const index = Math.floor(context.visibleTop / context.itemHeight);
       context.topPadding = index * context.itemHeight;
       context.bottomPadding = (this.items.length - index) * context.itemHeight;
       context.indexFirst = context.indexLast = index;
-      renderedArea.top = renderedArea.bottom = visibleArea.top;
+      renderedArea.top = renderedArea.bottom = context.visibleTop;
     }
 
     while (!finished) {
-      if (renderedArea.top > visibleArea.top && context.indexFirst > 0) {
-        const count = Math.ceil((renderedArea.top - visibleArea.top) / context.itemHeight);
+      if (renderedArea.top > context.visibleTop && context.indexFirst > 0) {
+        const count = Math.ceil((renderedArea.top - context.visibleTop) / context.itemHeight);
         const index = Math.max(context.indexFirst - count, 0);
 
         this.$('.container').prepend(_.map(
@@ -194,8 +188,8 @@ class ListView extends Backbone.View {
         renderedArea.top -= delta;
         context.indexFirst = index;
         containerHeight = containerHeightNew;
-      } else if (renderedArea.bottom < visibleArea.bottom && context.indexLast < this.items.length) {
-        const count = Math.ceil((visibleArea.bottom - renderedArea.bottom) / context.itemHeight);
+      } else if (renderedArea.bottom < context.visibleBottom && context.indexLast < this.items.length) {
+        const count = Math.ceil((context.visibleBottom - renderedArea.bottom) / context.itemHeight);
         const index = Math.min(context.indexLast + count, this.items.length);
 
         this.$('.container').append(_.map(
@@ -219,13 +213,13 @@ class ListView extends Backbone.View {
       this.$container.children().each((index, el) => {
         const { top, bottom, height } = context.locateElement(el);
 
-        if (bottom < visibleArea.top - this.viewport.height / 2) {
+        if (bottom < context.visibleTop - this.viewport.height / 2) {
           removal.push(el);
           renderedArea.top += height;
           innerContext.topPadding += height;
           containerHeight -= height;
           innerContext.indexFirst++;
-        } else if (top > visibleArea.bottom + this.viewport.height / 2) {
+        } else if (top > context.visibleBottom + this.viewport.height / 2) {
           removal.push(el);
           renderedArea.bottom -= height;
           innerContext.bottomPadding += height;
