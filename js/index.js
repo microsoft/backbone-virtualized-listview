@@ -79,6 +79,9 @@ class RedrawContext {
     this.listView = listView;
     _.extend(this, _.pick(listView, stateProperties));
     this.scrollTop = listView.viewport.scrollTop;
+
+    const contentRect = this.listView.$container.get(0).getBoundingClientRect();
+    this.contentTop = contentRect.top;
   }
 
   commit() {
@@ -88,6 +91,23 @@ class RedrawContext {
       'padding-top': this.topPadding,
       'padding-bottom': this.bottomPadding,
     });
+  }
+
+  locateElement(el) {
+    const { top, bottom, height } = el.getBoundingClientRect();
+    const delta = -this.contentTop + this.topPadding - this.listView.topPadding;
+    return {
+      top: top + delta,
+      bottom: bottom + delta,
+      height,
+    };
+  }
+
+  transaction(callback) {
+    const innerContext = _.clone(this);
+
+    callback(innerContext);
+    _.extend(this, innerContext);
   }
 }
 
@@ -194,27 +214,25 @@ class ListView extends Backbone.View {
       }
     }
     const removal = [];
-    const rectContainer = this.$container.get(0).getBoundingClientRect();
-    const delta = -rectContainer.top + context.topPadding - this.topPadding;
-    this.$container.children().each((index, el) => {
-      let { top, bottom, height } = el.getBoundingClientRect();
 
-      top += delta;
-      bottom += delta;
+    context.transaction(innerContext => {
+      this.$container.children().each((index, el) => {
+        const { top, bottom, height } = context.locateElement(el);
 
-      if (bottom < visibleArea.top - this.viewport.height / 2) {
-        removal.push(el);
-        renderedArea.top += height;
-        context.topPadding += height;
-        containerHeight -= height;
-        context.indexFirst++;
-      } else if (top > visibleArea.bottom + this.viewport.height / 2) {
-        removal.push(el);
-        renderedArea.bottom -= height;
-        context.bottomPadding += height;
-        containerHeight -= height;
-        context.indexLast--;
-      }
+        if (bottom < visibleArea.top - this.viewport.height / 2) {
+          removal.push(el);
+          renderedArea.top += height;
+          innerContext.topPadding += height;
+          containerHeight -= height;
+          innerContext.indexFirst++;
+        } else if (top > visibleArea.bottom + this.viewport.height / 2) {
+          removal.push(el);
+          renderedArea.bottom -= height;
+          innerContext.bottomPadding += height;
+          containerHeight -= height;
+          innerContext.indexLast--;
+        }
+      });
     });
 
     _.each(removal, node => node.remove());
