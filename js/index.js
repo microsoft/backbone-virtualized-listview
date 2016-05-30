@@ -72,6 +72,7 @@ const stateProperties = [
   'indexLast',
   'topPadding',
   'bottomPadding',
+  'contentHeight',
   'itemHeight',
 ];
 
@@ -85,10 +86,26 @@ class RedrawContext {
     this.contentTop = contentRect.top;
     this.contentHeight = this.listView.$container.height();
     this.contentBottom = contentRect.top + this.contentHeight;
+    this.visibleHeight = this.listView.viewport.height;
     this.visibleTop = Math.max(this.listView.viewport.top - this.contentTop, 0);
-    this.visibleBottom = this.visibleTop + this.listView.viewport.height;
-    this.renderedTop = this.topPadding;
-    this.renderedBottom = this.renderedTop + this.contentHeight;
+    this.visibleBottom = this.visibleTop + this.visibleHeight;
+  }
+
+  get renderedTop() {
+    return this.topPadding;
+  }
+
+  get renderedBottom() {
+    return this.topPadding + this.contentHeight;
+  }
+
+  clear() {
+    this.listView.$container.empty();
+    const index = Math.floor(this.visibleTop / this.itemHeight);
+    this.topPadding = index * this.itemHeight;
+    this.bottomPadding = (this.listView.items.length - index) * this.itemHeight;
+    this.indexFirst = this.indexLast = index;
+    this.contentHeight = 0;
   }
 
   commit() {
@@ -110,11 +127,67 @@ class RedrawContext {
     };
   }
 
-  transaction(callback) {
-    const innerContext = _.clone(this);
+  renderTop(index) {
+    this.listView.$container.prepend(_.map(
+      this.listView.items.slice(index, this.indexFirst),
+      _.compose(this.listView.itemTemplate, m => m.toJSON())
+    ));
 
-    callback(innerContext);
-    _.extend(this, innerContext);
+    const contentHeightNew = this.listView.$container.height();
+    const delta = contentHeightNew - this.contentHeight;
+
+    this.topPadding -= delta;
+    this.indexFirst = index;
+    this.contentHeight = contentHeightNew;
+  }
+
+  renderBottom(index) {
+    this.listView.$container.append(_.map(
+      this.listView.items.slice(this.indexLast, index),
+      _.compose(this.listView.itemTemplate, m => m.toJSON())
+    ));
+
+    const contentHeightNew = this.listView.$container.height();
+    const delta = contentHeightNew - this.contentHeight;
+
+    this.bottomPadding -= delta;
+    this.indexLast = index;
+    this.contentHeight = contentHeightNew;
+  }
+
+  purge(range) {
+    const removal = [];
+    const state = _.pick(this, stateProperties);
+
+    this.listView.$container.children().each((index, el) => {
+      const { top, bottom, height } = this.locateElement(el);
+
+      if (bottom < range.top) {
+        removal.push(el);
+        state.topPadding += height;
+        state.contentHeight -= height;
+        state.indexFirst++;
+      } else if (top > range.bottom) {
+        removal.push(el);
+        state.bottomPadding += height;
+        state.contentHeight -= height;
+        state.indexLast--;
+      }
+    });
+
+    _.each(removal, node => node.remove());
+    _.extend(this, state);
+  }
+
+  updateItemHeight() {
+    this.itemHeight = this.contentHeight / (this.indexLast - this.indexFirst);
+    const topPaddingNew = this.itemHeight * this.indexFirst;
+    if (Math.abs(topPaddingNew - this.topPadding) > 0.001) {
+      this.scrollTop += topPaddingNew - this.topPadding;
+      this.topPadding = topPaddingNew;
+    }
+
+    this.bottomPadding = this.itemHeight * (this.listView.items.length - this.indexLast);
   }
 }
 
@@ -132,13 +205,16 @@ class ListView extends Backbone.View {
     this.itemTemplate = itemTemplate;
     this.events = events;
     this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
-    this.itemHeight = defaultItemHeight;
 
+    // States
+    this.itemHeight = defaultItemHeight;
     this.indexFirst = 0;
     this.indexLast = 0;
     this.topPadding = 0;
     this.bottomPadding = this.itemHeight * this.items.length;
+    this.contentHeight = 0;
 
+    // Events
     this.redraw = this.redraw.bind(this);
     this.viewport.$el.on('scroll', this.redraw);
     this.viewport.$el.on('resize', this.redraw);
@@ -155,12 +231,7 @@ class ListView extends Backbone.View {
     let finished = false;
 
     if (context.renderedTop > context.visibleBottom || context.renderedBottom < context.visibleTop) {
-      this.$('.container').empty();
-      const index = Math.floor(context.visibleTop / context.itemHeight);
-      context.topPadding = index * context.itemHeight;
-      context.bottomPadding = (this.items.length - index) * context.itemHeight;
-      context.indexFirst = context.indexLast = index;
-      context.renderedTop = context.renderedBottom = context.visibleTop;
+      context.clear();
     }
 
     while (!finished) {
@@ -168,68 +239,23 @@ class ListView extends Backbone.View {
         const count = Math.ceil((context.renderedTop - context.visibleTop) / context.itemHeight);
         const index = Math.max(context.indexFirst - count, 0);
 
-        this.$('.container').prepend(_.map(
-          this.items.slice(index, context.indexFirst),
-          _.compose(this.itemTemplate, m => m.toJSON())
-        ));
-
-        const contentHeightNew = this.$('.container').height();
-        const delta = contentHeightNew - context.contentHeight;
-        context.topPadding -= delta;
-        context.renderedTop -= delta;
-        context.indexFirst = index;
-        context.contentHeight = contentHeightNew;
+        context.renderTop(index);
       } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.items.length) {
         const count = Math.ceil((context.visibleBottom - context.renderedBottom) / context.itemHeight);
         const index = Math.min(context.indexLast + count, this.items.length);
 
-        this.$('.container').append(_.map(
-          this.items.slice(context.indexLast, index),
-          _.compose(this.itemTemplate, m => m.toJSON())
-        ));
-
-        const contentHeightNew = this.$('.container').height();
-        const delta = contentHeightNew - context.contentHeight;
-        context.bottomPadding -= delta;
-        context.renderedBottom += delta;
-        context.indexLast = index;
-        context.contentHeight = contentHeightNew;
+        context.renderBottom(index);
       } else {
         finished = true;
       }
     }
-    const removal = [];
 
-    context.transaction(innerContext => {
-      this.$container.children().each((index, el) => {
-        const { top, bottom, height } = context.locateElement(el);
-
-        if (bottom < context.visibleTop - this.viewport.height / 2) {
-          removal.push(el);
-          context.renderedTop += height;
-          innerContext.topPadding += height;
-          innerContext.contentHeight -= height;
-          innerContext.indexFirst++;
-        } else if (top > context.visibleBottom + this.viewport.height / 2) {
-          removal.push(el);
-          context.renderedBottom -= height;
-          innerContext.bottomPadding += height;
-          innerContext.contentHeight -= height;
-          innerContext.indexLast--;
-        }
-      });
+    context.purge({
+      top: context.visibleTop - context.visibleHeight / 2,
+      bottom: context.visibleBottom + context.visibleHeight / 2,
     });
 
-    _.each(removal, node => node.remove());
-
-    context.itemHeight = context.contentHeight / (context.indexLast - context.indexFirst);
-    const topPaddingNew = context.itemHeight * context.indexFirst;
-    if (Math.abs(topPaddingNew - context.topPadding) > 0.001) {
-      context.scrollTop += topPaddingNew - context.topPadding;
-      context.topPadding = topPaddingNew;
-    }
-
-    context.bottomPadding = context.itemHeight * (this.items.length - context.indexLast);
+    context.updateItemHeight();
 
     context.commit();
   }
