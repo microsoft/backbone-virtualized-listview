@@ -84,7 +84,7 @@ class RedrawContext {
 
     const contentRect = this.listView.$container.get(0).getBoundingClientRect();
     this.contentTop = contentRect.top;
-    this.contentHeight = this.listView.$container.height();
+    this.contentHeight = this.listView.$innerContainer.height();
     this.contentBottom = contentRect.top + this.contentHeight;
     this.visibleHeight = this.listView.viewport.height;
     this.visibleTop = Math.max(this.listView.viewport.top - this.contentTop, 0);
@@ -100,7 +100,7 @@ class RedrawContext {
   }
 
   clear() {
-    this.listView.$container.empty();
+    this.listView.$innerContainer.empty();
     const index = Math.floor(this.visibleTop / this.itemHeight);
     this.topPadding = index * this.itemHeight;
     this.bottomPadding = (this.listView.items.length - index) * this.itemHeight;
@@ -128,12 +128,12 @@ class RedrawContext {
   }
 
   renderTop(index) {
-    this.listView.$container.prepend(_.map(
+    this.listView.$innerContainer.prepend(_.map(
       this.listView.items.slice(index, this.indexFirst),
       _.compose(this.listView.itemTemplate, m => m.toJSON())
     ));
 
-    const contentHeightNew = this.listView.$container.height();
+    const contentHeightNew = this.listView.$innerContainer.height();
     const delta = contentHeightNew - this.contentHeight;
 
     this.topPadding -= delta;
@@ -142,12 +142,12 @@ class RedrawContext {
   }
 
   renderBottom(index) {
-    this.listView.$container.append(_.map(
+    this.listView.$innerContainer.append(_.map(
       this.listView.items.slice(this.indexLast, index),
       _.compose(this.listView.itemTemplate, m => m.toJSON())
     ));
 
-    const contentHeightNew = this.listView.$container.height();
+    const contentHeightNew = this.listView.$innerContainer.height();
     const delta = contentHeightNew - this.contentHeight;
 
     this.bottomPadding -= delta;
@@ -159,7 +159,7 @@ class RedrawContext {
     const removal = [];
     const state = _.pick(this, stateProperties);
 
-    this.listView.$container.children().each((index, el) => {
+    this.listView.$innerContainer.children().each((index, el) => {
       const { top, bottom, height } = this.locateElement(el);
 
       if (bottom < range.top) {
@@ -175,7 +175,7 @@ class RedrawContext {
       }
     });
 
-    _.each(removal, node => node.remove());
+    $(removal).remove();
     _.extend(this, state);
   }
 
@@ -263,7 +263,9 @@ class ListView extends Backbone.View {
   render() {
     this.$el.html(this.listTemplate());
     this.$el.css({ position: 'relative' });
+    this.$innerContainer = $('<div/>');
     this.$container = this.$('.container');
+    this.$container.html(this.$innerContainer);
     window.setTimeout(() => this.redraw(), 0);
     return this;
   }
