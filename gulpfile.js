@@ -160,7 +160,6 @@ gulp.task('clean', ['clean:build', 'clean:test']);
 gulp.task('default', [
   'static',
   'webpack',
-  'examples',
 // coveralls
   'coveralls',
 // coveralls-end

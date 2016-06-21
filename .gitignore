@@ -4,6 +4,10 @@ node_modules
 # code coverage
 coverage
 
+# test output
+errorShots
+test-results
+
 # output folder
 dist
 
