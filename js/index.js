@@ -103,7 +103,7 @@ class RedrawContext {
     this.listView.$innerContainer.empty();
     const index = Math.floor(this.visibleTop / this.itemHeight);
     this.topPadding = index * this.itemHeight;
-    this.bottomPadding = (this.listView.items.length - index) * this.itemHeight;
+    this.bottomPadding = (this.listView.model.length - index) * this.itemHeight;
     this.indexFirst = this.indexLast = index;
     this.contentHeight = 0;
   }
@@ -129,7 +129,7 @@ class RedrawContext {
 
   renderTop(index) {
     this.listView.$innerContainer.prepend(_.map(
-      this.listView.items.slice(index, this.indexFirst),
+      this.listView.model.slice(index, this.indexFirst),
       _.compose(this.listView.itemTemplate, m => m.toJSON())
     ));
 
@@ -143,7 +143,7 @@ class RedrawContext {
 
   renderBottom(index) {
     this.listView.$innerContainer.append(_.map(
-      this.listView.items.slice(this.indexLast, index),
+      this.listView.model.slice(this.indexLast, index),
       _.compose(this.listView.itemTemplate, m => m.toJSON())
     ));
 
@@ -187,7 +187,7 @@ class RedrawContext {
       this.topPadding = topPaddingNew;
     }
 
-    this.bottomPadding = this.itemHeight * (this.listView.items.length - this.indexLast);
+    this.bottomPadding = this.itemHeight * (this.listView.model.length - this.indexLast);
   }
 }
 
@@ -195,12 +195,10 @@ class ListView extends Backbone.View {
   initialize({
     listTemplate = defaultListTemplate,
     itemTemplate = defaultItemTemplate,
-    items = [],
     events = {},
     viewport = null,
     defaultItemHeight = 20,
   }) {
-    this.items = new Backbone.Collection(items);
     this.listTemplate = listTemplate;
     this.itemTemplate = itemTemplate;
     this.events = events;
@@ -211,7 +209,7 @@ class ListView extends Backbone.View {
     this.indexFirst = 0;
     this.indexLast = 0;
     this.topPadding = 0;
-    this.bottomPadding = this.itemHeight * this.items.length;
+    this.bottomPadding = this.itemHeight * this.model.length;
     this.contentHeight = 0;
 
     // Events
@@ -240,9 +238,9 @@ class ListView extends Backbone.View {
         const index = Math.max(context.indexFirst - count, 0);
 
         context.renderTop(index);
-      } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.items.length) {
+      } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.model.length) {
         const count = Math.ceil((context.visibleBottom - context.renderedBottom) / context.itemHeight);
-        const index = Math.min(context.indexLast + count, this.items.length);
+        const index = Math.min(context.indexLast + count, this.model.length);
 
         context.renderBottom(index);
       } else {
