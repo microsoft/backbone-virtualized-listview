@@ -266,8 +266,12 @@ class ListView extends Backbone.View {
     this.$innerContainer = $('<div/>');
     this.$container = this.$('.container');
     this.$container.html(this.$innerContainer);
-    window.setTimeout(() => this.redraw(), 0);
+    this.scheduleRedraw();
     return this;
+  }
+
+  scheduleRedraw() {
+    window.setTimeout(() => this.redraw(), 0);
   }
 
 }
