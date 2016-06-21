@@ -5,6 +5,6 @@ import 'style!css!./index.css';
 
 const listView = window.listView = new ListView({
   items: _.map(_.range(20000), i => ({ text: i })),
-  viewport: '.list-container',
+  viewport: '.container',
 }).render();
-$('.list-container').append(listView.$el);
+$('.container').append(listView.$el);
