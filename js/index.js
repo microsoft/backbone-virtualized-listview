@@ -213,22 +213,36 @@ class ListView extends Backbone.View {
     this.contentHeight = 0;
 
     // Events
-    this.redraw = this.redraw.bind(this);
-    this.viewport.$el.on('scroll', this.redraw);
-    this.viewport.$el.on('resize', this.redraw);
+    this.scheduleRedraw = (() => {
+      let scheduled = false;
+      return clear => {
+        if (!scheduled) {
+          scheduled = true;
+          window.requestAnimationFrame(() => {
+            this.redraw(clear);
+            scheduled = false;
+          }, 0);
+        }
+      };
+    })();
+    this.viewport.$el.on('scroll', this.scheduleRedraw);
+    this.viewport.$el.on('resize', this.scheduleRedraw);
+
+    this.model.on('all', () => this.scheduleRedraw(true));
   }
 
   remove() {
-    this.viewport.$el.off('scroll', this.redraw);
-    this.viewport.$el.off('resize', this.redraw);
+    this.viewport.$el.off('scroll', this.scheduleRedraw);
+    this.viewport.$el.off('resize', this.scheduleRedraw);
   }
 
-  redraw() {
+  redraw(clear = false) {
     const context = new RedrawContext(this);
 
     let finished = false;
 
-    if (context.renderedTop > context.visibleBottom || context.renderedBottom < context.visibleTop) {
+    if (context.renderedTop > context.visibleBottom ||
+      context.renderedBottom < context.visibleTop || clear) {
       context.clear();
     }
 
@@ -266,10 +280,6 @@ class ListView extends Backbone.View {
     this.$container.html(this.$innerContainer);
     this.scheduleRedraw();
     return this;
-  }
-
-  scheduleRedraw() {
-    window.setTimeout(() => this.redraw(), 0);
   }
 
 }
