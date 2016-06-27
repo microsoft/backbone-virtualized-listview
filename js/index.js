@@ -101,9 +101,9 @@ class RedrawContext {
 
   clear() {
     this.listView.$innerContainer.empty();
-    const index = Math.floor(this.visibleTop / this.itemHeight);
+    const index = Math.min(Math.floor(this.visibleTop / this.itemHeight), this.listView.items.length);
     this.topPadding = index * this.itemHeight;
-    this.bottomPadding = (this.listView.model.length - index) * this.itemHeight;
+    this.bottomPadding = (this.listView.items.length - index) * this.itemHeight;
     this.indexFirst = this.indexLast = index;
     this.contentHeight = 0;
   }
@@ -129,8 +129,8 @@ class RedrawContext {
 
   renderTop(index) {
     this.listView.$innerContainer.prepend(_.map(
-      this.listView.model.slice(index, this.indexFirst),
-      _.compose(this.listView.itemTemplate, m => m.toJSON())
+      this.listView.items.slice(index, this.indexFirst),
+      this.listView.itemTemplate
     ));
 
     const contentHeightNew = this.listView.$innerContainer.height();
@@ -143,8 +143,8 @@ class RedrawContext {
 
   renderBottom(index) {
     this.listView.$innerContainer.append(_.map(
-      this.listView.model.slice(this.indexLast, index),
-      _.compose(this.listView.itemTemplate, m => m.toJSON())
+      this.listView.items.slice(this.indexLast, index),
+      this.listView.itemTemplate
     ));
 
     const contentHeightNew = this.listView.$innerContainer.height();
@@ -180,14 +180,17 @@ class RedrawContext {
   }
 
   updateItemHeight() {
-    this.itemHeight = this.contentHeight / (this.indexLast - this.indexFirst);
-    const topPaddingNew = this.itemHeight * this.indexFirst;
-    if (Math.abs(topPaddingNew - this.topPadding) > 0.001) {
-      this.scrollTop += topPaddingNew - this.topPadding;
-      this.topPadding = topPaddingNew;
-    }
+    if (this.indexLast > this.indexFirst) {
+      this.itemHeight = this.contentHeight / (this.indexLast - this.indexFirst);
+      const topPaddingNew = this.itemHeight * this.indexFirst;
 
-    this.bottomPadding = this.itemHeight * (this.listView.model.length - this.indexLast);
+      if (Math.abs(topPaddingNew - this.topPadding) > 0.001) {
+        this.scrollTop += topPaddingNew - this.topPadding;
+        this.topPadding = topPaddingNew;
+      }
+
+      this.bottomPadding = this.itemHeight * (this.listView.items.length - this.indexLast);
+    }
   }
 }
 
@@ -196,12 +199,14 @@ class ListView extends Backbone.View {
     listTemplate = defaultListTemplate,
     itemTemplate = defaultItemTemplate,
     events = {},
+    items = [],
     viewport = null,
     defaultItemHeight = 20,
   }) {
     this.listTemplate = listTemplate;
     this.itemTemplate = itemTemplate;
     this.events = events;
+    this.items = items;
     this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
 
     // States
@@ -209,7 +214,7 @@ class ListView extends Backbone.View {
     this.indexFirst = 0;
     this.indexLast = 0;
     this.topPadding = 0;
-    this.bottomPadding = this.itemHeight * this.model.length;
+    this.bottomPadding = this.itemHeight * this.items.length;
     this.contentHeight = 0;
 
     // Events
@@ -227,8 +232,6 @@ class ListView extends Backbone.View {
     })();
     this.viewport.$el.on('scroll', this.scheduleRedraw);
     this.viewport.$el.on('resize', this.scheduleRedraw);
-
-    this.model.on('all', () => this.scheduleRedraw(true));
   }
 
   remove() {
@@ -252,9 +255,9 @@ class ListView extends Backbone.View {
         const index = Math.max(context.indexFirst - count, 0);
 
         context.renderTop(index);
-      } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.model.length) {
+      } else if (context.renderedBottom < context.visibleBottom && context.indexLast < this.items.length) {
         const count = Math.ceil((context.visibleBottom - context.renderedBottom) / context.itemHeight);
-        const index = Math.min(context.indexLast + count, this.model.length);
+        const index = Math.min(context.indexLast + count, this.items.length);
 
         context.renderBottom(index);
       } else {
@@ -270,6 +273,11 @@ class ListView extends Backbone.View {
     context.updateItemHeight();
 
     context.commit();
+  }
+
+  setItems(items) {
+    this.items = items;
+    this.scheduleRedraw(true);
   }
 
   render() {
