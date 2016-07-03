@@ -1,52 +1,72 @@
+import Backbone from 'backbone';
 import $ from 'jquery';
 import _ from 'underscore';
 
 function getElementMetrics(el) {
-  return _.pick(el.getBoundingClientRect(), ['left', 'top', 'right', 'bottom', 'width', 'height']);
+  return _.pick(el.getBoundingClientRect(), [
+    'left',
+    'top',
+    'right',
+    'bottom',
+    'width',
+    'height',
+  ]);
 }
 
 class Viewport {
-  getMetrics() {
-    return {
-      inner: this.getInnerMetrics(),
-      outer: this.getOuterMetrics(),
-      scroll: this.getScrollMetrics(),
+  constructor() {
+    _.extend(this, Backbone.Events);
+
+    this.onScroll = () => {
+      this.trigger('scroll');
+      this.trigger('change');
+    };
+
+    this.onResize = () => {
+      this.trigger('resize');
+      this.trigger('change');
     };
   }
 
-  getInnerMetrics() {
-    throw new Error('Not implemented');
-  }
-
-  getOuterMetrics() {
-    throw new Error('Not implemented');
-  }
-
-  getScrollMetrics() {
+  getMetrics() {
     throw new Error('Not implemented');
   }
 }
 
 export class WindowViewport extends Viewport {
-  getInnerMetrics() {
-    return getElementMetrics(document.documentElement);
+  constructor() {
+    super();
+    $(window).on('resize', this.onResize);
+    $(window).on('scroll', this.onScroll);
   }
 
-  getOuterMetrics() {
-    return {
-      top: 0,
-      bottom: window.innerHeight,
-      left: 0,
-      right: window.innerWidth,
-      width: window.innerWidth,
-      height: window.innerHeight,
-    };
+  remove() {
+    $(window).off('resize', this.onResize);
+    $(window).off('scroll', this.onScroll);
   }
 
-  getScrollMetrics() {
+  getMetrics() {
+    const inner = getElementMetrics(document.documentElement);
+
+    inner.width = document.documentElement.scrollWidth;
+    inner.height = document.documentElement.scrollHeight;
+    inner.right = inner.left + inner.width;
+    inner.bottom = inner.top + inner.height;
+
     return {
-      x: window.scrollX,
-      y: window.scrollY,
+      inner,
+      outer: {
+        top: 0,
+        bottom: window.innerHeight,
+        left: 0,
+        right: window.innerWidth,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+      scroll: {
+        x: window.scrollX,
+        y: window.scrollY,
+      },
     };
   }
 }
@@ -55,35 +75,34 @@ export class ElementViewport extends Viewport {
   constructor(el) {
     super();
 
-    this.el = el;
+    this.el = $(el).get(0);
     this.el.style.overflow = 'scroll';
+    $(this.el).on('scroll', this.onScroll);
+    $(this.el).on('resize', this.onResize);
   }
 
-  getInnerMetrics() {
-    const left = this.el.scrollLeft;
-    const top = this.el.scrollTop;
-    const width = this.el.scrollWidth;
-    const height = this.el.scrollHeight;
-
-    return {
-      left,
-      top,
-      right: left + width,
-      bottom: top + height,
-      width,
-      height,
-    };
+  remove() {
+    $(this.el).off('scroll', this.onScroll);
+    $(this.el).off('resize', this.onResize);
   }
 
-  getOuterMetrics() {
-    return getElementMetrics(this.el);
-  }
-
-  getScrollMetrics() {
-    return {
+  getMetrics() {
+    const outer = getElementMetrics(this.el);
+    const scroll = {
       x: this.el.scrollLeft,
       y: this.el.scrollTop,
     };
+    const inner = {
+      left: outer.left - scroll.x,
+      top: outer.top - scroll.y,
+      width: this.el.scrollWidth,
+      height: this.el.scrollHeight,
+    };
+    inner.right = inner.left + inner.width;
+    inner.bottom = inner.top + inner.height;
+
+    return { outer, inner, scroll };
   }
+
 }
 

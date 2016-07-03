@@ -3,69 +3,7 @@ import _ from 'underscore';
 import Backbone from 'backbone';
 import defaultListTemplate from './default-list.jade';
 import defaultItemTemplate from './default-item.jade';
-
-class Viewport {
-
-  get top() {
-    return 0;
-  }
-
-  get height() {
-    return 0;
-  }
-
-  get bottom() {
-    return this.top + this.height;
-  }
-}
-
-class WindowViewport extends Viewport {
-
-  constructor() {
-    super();
-    this.$el = $(window);
-  }
-
-  get top() {
-    // return window.scrollY;
-    return 0;
-  }
-
-  get height() {
-    return window.innerHeight;
-  }
-
-  get scrollTop() {
-    return window.scrollY;
-  }
-
-  set scrollTop(scrollTop) {
-    window.scrollY = scrollTop;
-  }
-}
-
-class ElementViewport extends Viewport {
-  constructor(selector) {
-    super();
-    this.$el = $(selector);
-  }
-
-  get top() {
-    return this.$el.get(0).getBoundingClientRect().top;
-  }
-
-  get height() {
-    return this.$el.height();
-  }
-
-  get scrollTop() {
-    return this.$el.scrollTop();
-  }
-
-  set scrollTop(scrollTop) {
-    this.$el.scrollTop(scrollTop);
-  }
-}
+import { ElementViewport, WindowViewport } from './viewport.js';
 
 const stateProperties = [
   'indexFirst',
@@ -80,14 +18,15 @@ class RedrawContext {
   constructor(listView) {
     this.listView = listView;
     _.extend(this, _.pick(listView, stateProperties));
-    this.scrollTop = listView.viewport.scrollTop;
+    const metricsViewport = listView.viewport.getMetrics();
+    this.scrollTop = metricsViewport.scroll.y;
 
     const contentRect = this.listView.$container.get(0).getBoundingClientRect();
     this.contentTop = contentRect.top;
     this.contentHeight = this.listView.$innerContainer.height();
     this.contentBottom = contentRect.top + this.contentHeight;
-    this.visibleHeight = this.listView.viewport.height;
-    this.visibleTop = Math.max(this.listView.viewport.top - this.contentTop, 0);
+    this.visibleHeight = metricsViewport.outer.height;
+    this.visibleTop = Math.max(metricsViewport.outer.top - this.contentTop, 0);
     this.visibleBottom = this.visibleTop + this.visibleHeight;
   }
 
@@ -230,13 +169,11 @@ class ListView extends Backbone.View {
         }
       };
     })();
-    this.viewport.$el.on('scroll', this.scheduleRedraw);
-    this.viewport.$el.on('resize', this.scheduleRedraw);
+    this.viewport.on('change', this.scheduleRedraw);
   }
 
   remove() {
-    this.viewport.$el.off('scroll', this.scheduleRedraw);
-    this.viewport.$el.off('resize', this.scheduleRedraw);
+    this.viewport.remove();
   }
 
   redraw(clear = false) {

@@ -1,0 +1,57 @@
+@text-distance: 3px;
+
+.mark {
+	position: fixed;
+
+	.text {
+		position: absolute;
+	}
+
+	.top {
+		border-bottom-style: solid;
+		.cell {
+			vertical-align: bottom;
+			.text {
+				bottom: @text-distance;
+			}
+		}
+	}
+	.bottom {
+		// border-top-style: solid;
+		.cell {
+			vertical-align: top;
+			.text {
+				top: @text-distance;
+			}
+		}
+	}
+	.left {
+		border-right-style: solid;
+		.text {
+			right: @text-distance;
+		}
+	}
+	.right {
+		// border-left-style: solid;
+		.text {
+			left: @text-distance;
+		}
+	}
+
+	.cell {
+		border-width: 1px;
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin: 0;
+		padding: 0;
+		white-space: nowrap;
+		position: relative;
+	}
+
+	.row {
+		border-width: 1px;
+		margin: 0;
+		padding: 0;
+	}
+}
