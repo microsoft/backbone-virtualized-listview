@@ -14,8 +14,10 @@ function getElementMetrics(el) {
 }
 
 class Viewport {
-  constructor() {
+  constructor($el) {
     _.extend(this, Backbone.Events);
+
+    this.$el = $el;
 
     this.onScroll = () => {
       this.trigger('scroll');
@@ -26,6 +28,19 @@ class Viewport {
       this.trigger('resize');
       this.trigger('change');
     };
+
+    this.$el.on('resize', this.onResize);
+    this.$el.on('scroll', this.onScroll);
+  }
+
+  remove() {
+    this.$el.off('resize', this.onResize);
+    this.$el.off('scroll', this.onScroll);
+  }
+
+  scrollTo({ x, y }) {
+    _.isNumber(x) && this.$el.scrollLeft(x);
+    _.isNumber(y) && this.$el.scrollTop(y);
   }
 
   getMetrics() {
@@ -35,14 +50,7 @@ class Viewport {
 
 export class WindowViewport extends Viewport {
   constructor() {
-    super();
-    $(window).on('resize', this.onResize);
-    $(window).on('scroll', this.onScroll);
-  }
-
-  remove() {
-    $(window).off('resize', this.onResize);
-    $(window).off('scroll', this.onScroll);
+    super($(window));
   }
 
   getMetrics() {
@@ -73,17 +81,10 @@ export class WindowViewport extends Viewport {
 
 export class ElementViewport extends Viewport {
   constructor(el) {
-    super();
+    super($(el));
 
-    this.el = $(el).get(0);
+    this.el = this.$el.get(0);
     this.el.style.overflow = 'scroll';
-    $(this.el).on('scroll', this.onScroll);
-    $(this.el).on('resize', this.onResize);
-  }
-
-  remove() {
-    $(this.el).off('scroll', this.onScroll);
-    $(this.el).off('resize', this.onResize);
   }
 
   getMetrics() {

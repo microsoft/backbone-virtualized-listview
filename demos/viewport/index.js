@@ -13,10 +13,13 @@ _.each(marks, mark => document.body.appendChild(mark.el));
 
 function update() {
   const innerEl = vpElement.getMetrics().inner;
-  marks[0].model.set({ x: innerEl.left, y: innerEl.top });
-  marks[1].model.set({ x: innerEl.left, y: innerEl.bottom });
-  marks[2].model.set({ x: innerEl.right, y: innerEl.top });
-  marks[3].model.set({ x: innerEl.right, y: innerEl.bottom });
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  marks[0].model.set({ x: innerEl.left, y: innerEl.top, windowWidth, windowHeight });
+  marks[1].model.set({ x: innerEl.left, y: innerEl.bottom, windowWidth, windowHeight });
+  marks[2].model.set({ x: innerEl.right, y: innerEl.top, windowWidth, windowHeight });
+  marks[3].model.set({ x: innerEl.right, y: innerEl.bottom, windowWidth, windowHeight });
 
   const innerWin = vpWindow.getMetrics().inner;
   const posWin = _.chain([

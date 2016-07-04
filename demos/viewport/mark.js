@@ -5,20 +5,26 @@ import './mark.less';
 export class Mark extends Backbone.View {
 
 	initialize({
-		model = new Backbone.Model({ x: 10, y: 10 })
+    model = new Backbone.Model({
+      x: 10,
+      y: 10,
+      windowHeight: window.innerHeight,
+      windowWidth: window.innerWidth,
+    })
 	} = {}) {
 		this.model = model;
 		this.model.on('change', () => this.render());
 	}
 
 	render() {
-		const { x, y } = this.model.toJSON();
+		const { x, y, windowHeight, windowWidth } = this.model.toJSON();
 		const center = {
-			x: window.innerWidth / 2,
-			y: window.innerHeight / 2,
+			x: windowWidth / 2,
+			y: windowHeight / 2,
 		};
 		const pos = `(${x}, ${y})`;
 		const options = {};
+
 		if (x > center.x) {
 			if (y > center.y) {
 				options.textTopLeft = pos;
