@@ -19,28 +19,40 @@ class Viewport {
 
     this.$el = $el;
 
+    let scroll = null;
+
     this.onScroll = () => {
+      scroll = null;
       this.trigger('scroll');
       this.trigger('change');
     };
 
     this.onResize = () => {
+      scroll = null;
       this.trigger('resize');
       this.trigger('change');
     };
 
     this.$el.on('resize', this.onResize);
     this.$el.on('scroll', this.onScroll);
+
+    this.scrollTo = scrollNew => {
+      if (!scroll) {
+        window.setTimeout(() => {
+          if (scroll) {
+            _.isNumber(scroll.x) && this.$el.scrollLeft(scroll.x);
+            _.isNumber(scroll.y) && this.$el.scrollTop(scroll.y);
+            scroll = null;
+          }
+        }, 0.1);
+      }
+      scroll = scrollNew;
+    };
   }
 
   remove() {
     this.$el.off('resize', this.onResize);
     this.$el.off('scroll', this.onScroll);
-  }
-
-  scrollTo({ x, y }) {
-    _.isNumber(x) && this.$el.scrollLeft(x);
-    _.isNumber(y) && this.$el.scrollTop(y);
   }
 
   getMetrics() {
