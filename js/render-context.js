@@ -277,37 +277,54 @@ export class RenderContext {
     const { indexFirst, indexLast, itemHeight } = this.state;
     const { visibleTop, visibleBot, listTop } = this.metrics;
     const anchor = {};
+    let idx = Math.min(Math.max(index, 0), this.listView.items.length - 1);
+    let pos = position;
     let delta = 0;
-    if (indexFirst <= index && index < indexLast) {
-      const el = this.listView.$innerContainer.children().get(index - indexFirst);
+
+    if (indexFirst <= idx && idx < indexLast) {
+      const el = this.listView.$innerContainer.children().get(idx - indexFirst);
       const rect = el.getBoundingClientRect();
 
-      anchor.index = index;
-      if (position === 'top') {
+      if (pos === 'default') {
+        if (rect.top < visibleTop) {
+          pos = 'top';
+        } else if (rect.bottom > visibleBot) {
+          pos = 'bottom';
+        } else {
+          return;
+        }
+      }
+
+      anchor.index = idx;
+      if (pos === 'top') {
         anchor.top = visibleTop;
-      } else if (position === 'bottom') {
+      } else if (pos === 'bottom') {
         anchor.top = visibleBot - rect.height;
-      } else if (position === 'middle') {
+      } else if (pos === 'middle') {
         anchor.top = (visibleTop + visibleBot - rect.height) / 2;
-      } else if (_.isNumber(position)) {
-        anchor.top = visibleTop + position;
+      } else if (_.isNumber(pos)) {
+        anchor.top = visibleTop + pos;
       }
       delta = rect.top - anchor.top;
     } else {
-      if (position === 'top') {
-        anchor.index = index;
-        anchor.top = visibleTop;
-      } else if (position === 'bottom') {
-        anchor.index = index + 1;
-        anchor.top = visibleBot;
-      } else if (position === 'middle') {
-        anchor.index = index;
-        anchor.top = (visibleTop + visibleBot - itemHeight) / 2;
-      } else if (_.isNumber(position)) {
-        anchor.index = index;
-        anchor.top = visibleTop + position;
+      if (pos === 'default') {
+        pos = idx < indexFirst ? 'top' : 'bottom';
       }
-      delta = listTop + index * itemHeight - anchor.top;
+
+      if (pos === 'top') {
+        anchor.index = idx;
+        anchor.top = visibleTop;
+      } else if (pos === 'bottom') {
+        anchor.index = idx + 1;
+        anchor.top = visibleBot;
+      } else if (pos === 'middle') {
+        anchor.index = idx;
+        anchor.top = (visibleTop + visibleBot - itemHeight) / 2;
+      } else if (_.isNumber(pos)) {
+        anchor.index = idx;
+        anchor.top = visibleTop + pos;
+      }
+      delta = listTop + idx * itemHeight - anchor.top;
     }
 
     if (Math.abs(delta) > 0.1) {

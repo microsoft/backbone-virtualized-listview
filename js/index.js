@@ -96,7 +96,7 @@ class ListView extends Backbone.View {
     this.scheduleRedraw({ clear: true });
   }
 
-  scrollToItem(index, position = 'top') {
+  scrollToItem(index, position = 'default') {
     const anchor = { index, position };
     this.scheduleRedraw({ anchor });
   }
