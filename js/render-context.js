@@ -251,4 +251,51 @@ export class RenderContext {
     }
   }
 
+  scrollToAnchor({ index, position }) {
+    const { indexFirst, indexLast, itemHeight } = this.state;
+    const { visibleTop, visibleBot, listTop } = this.metrics;
+    const anchor = {};
+    let delta = 0;
+    if (indexFirst <= index && index < indexLast) {
+      const el  = this.listView.$innerContainer.children().get(index - indexFirst);
+      const rect = el.getBoundingClientRect();
+
+      anchor.index = index;
+      if (position === 'top') {
+        anchor.top = visibleTop;
+      } else if (position === 'bottom') {
+        anchor.top = visibleBot - rect.height;
+      } else if (position === 'middle') {
+        anchor.top = (visibleTop + visibleBot - rect.height) / 2;
+      } else if (_.isNumber(position)) {
+        anchor.top = visibleTop + position;
+      }
+      delta = rect.top - anchor.top;
+    } else {
+      if (position === 'top') {
+        anchor.index = index;
+        anchor.top = visibleTop;
+      } else if (position === 'bottom') {
+        anchor.index = index + 1;
+        anchor.top = visibleBot;
+      } else if (position === 'middle') {
+        anchor.index = index;
+        anchor.top = (visibleTop + visibleBot - itemHeight) / 2;
+      } else if (_.isNumber(position)) {
+        anchor.index = index;
+        anchor.top = visibleTop + position;
+      }
+      delta = listTop + index * itemHeight - anchor.top;
+    }
+
+    if (Math.abs(delta) > 0.1) {
+      _.extend(this.anchor, anchor);
+      this.metrics.scrollTop += delta;
+      this.metrics.elTop -= delta;
+      this.metrics.listTop -= delta;
+      this.metrics.itemsTop -= delta;
+      this.changed = true;
+    }
+  }
+
 }

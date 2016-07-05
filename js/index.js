@@ -30,11 +30,11 @@ class ListView extends Backbone.View {
     this.scheduleRedraw = (() => {
       let scheduled = false;
 
-      return clear => {
+      return options => {
         if (!scheduled) {
           scheduled = true;
           window.requestAnimationFrame(() => {
-            this.redraw(clear);
+            this.redraw(options);
             scheduled = false;
           });
         }
@@ -48,9 +48,16 @@ class ListView extends Backbone.View {
     super.remove();
   }
 
-  redraw(clear = false) {
+  redraw({
+    clear = false,
+    anchor = null,
+  } = {}) {
     const context = new RenderContext(this);
     const { metrics, state }  = context;
+
+    if (anchor) {
+      context.scrollToAnchor(anchor);
+    }
 
     if (clear ||
       metrics.itemsTop > metrics.visibleBot ||
@@ -86,7 +93,13 @@ class ListView extends Backbone.View {
 
   setItems(items) {
     this.items = items;
-    this.scheduleRedraw(true);
+    this.scheduleRedraw({ clear: true });
+  }
+
+  scrollToItem(index, position = 0) {
+    const metricsVP = this.viewport.getMetrics();
+    const anchor = { index, position };
+    this.scheduleRedraw({ anchor });
   }
 
   render() {
