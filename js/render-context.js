@@ -179,9 +179,22 @@ export class RenderContext {
   }
 
   clear() {
+    const { itemHeight } = this.state;
+    const { visibleTop, listTop } = this.metrics;
+    let { indexFirst, indexLast } = this.state;
+    let { itemsTop, itemsHeight } = this.metrics;
+    let index = Math.floor((visibleTop - listTop) / itemHeight);
+
+    index = Math.max(index, 0);
+    index = Math.min(index, this.listView.items.length - 1);
+    indexFirst = indexLast = index;
+    itemsTop = listTop + itemHeight * indexFirst;
+    itemsHeight = 0;
+
     this.listView.$innerContainer.empty();
-    this.metrics.itemsHeight = 0;
-    this.state.indexLast = this.state.indexFirst;
+    _.extend(this.state, { indexFirst, indexLast });
+    _.extend(this.metrics, { itemsTop, itemsHeight });
+
     this.changed = true;
   }
 

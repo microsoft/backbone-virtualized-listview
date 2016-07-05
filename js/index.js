@@ -28,18 +28,19 @@ class ListView extends Backbone.View {
 
     // Events
     this.scheduleRedraw = (() => {
-      let scheduled = false;
+      let requestId = null;
 
       return options => {
-        if (!scheduled) {
-          scheduled = true;
-          window.requestAnimationFrame(() => {
-            this.redraw(options);
-            scheduled = false;
-          });
+        if (requestId !== null) {
+          window.cancelAnimationFrame(requestId);
         }
+        requestId = window.requestAnimationFrame(() => {
+          requestId = null;
+          this.redraw(options);
+        });
       };
     })();
+
     this.viewport.on('change', this.scheduleRedraw);
   }
 
