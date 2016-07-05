@@ -40,8 +40,12 @@ class Viewport {
       if (!scroll) {
         window.setTimeout(() => {
           if (scroll) {
-            _.isNumber(scroll.x) && this.$el.scrollLeft(scroll.x);
-            _.isNumber(scroll.y) && this.$el.scrollTop(scroll.y);
+            if (_.isNumber(scroll.x)) {
+              this.$el.scrollLeft(scroll.x);
+            }
+            if (_.isNumber(scroll.y)) {
+              this.$el.scrollTop(scroll.y);
+            }
             scroll = null;
           }
         }, 0.1);
@@ -118,4 +122,3 @@ export class ElementViewport extends Viewport {
   }
 
 }
-

@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 import Backbone from 'backbone';
 import defaultListTemplate from './default-list.jade';
 import defaultItemTemplate from './default-item.jade';
@@ -54,7 +53,7 @@ class ListView extends Backbone.View {
     anchor = null,
   } = {}) {
     const context = new RenderContext(this);
-    const { metrics, state }  = context;
+    const { metrics, state } = context;
 
     if (anchor) {
       context.scrollToAnchor(anchor);
@@ -97,8 +96,7 @@ class ListView extends Backbone.View {
     this.scheduleRedraw({ clear: true });
   }
 
-  scrollToItem(index, position = 0) {
-    const metricsVP = this.viewport.getMetrics();
+  scrollToItem(index, position = 'top') {
     const anchor = { index, position };
     this.scheduleRedraw({ anchor });
   }

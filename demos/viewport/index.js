@@ -1,6 +1,5 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import Backbone from 'backbone';
 import { WindowViewport, ElementViewport } from '../../js/viewport.js';
 import { Mark } from './mark.js';
 import './index.less';
@@ -37,4 +36,3 @@ update();
 
 vpWindow.on('change', update);
 vpElement.on('change', update);
-

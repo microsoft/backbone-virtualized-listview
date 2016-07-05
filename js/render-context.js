@@ -1,7 +1,6 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-
 /*
  *         elHeight                    scrollTop
  * +------+ <--=---------------------------=----------------------- elTop
@@ -79,7 +78,7 @@ class Metrics {
 const stateProperties = ['indexFirst', 'indexLast', 'itemHeight'];
 
 function defaultAnchor({ metrics, state, listView }) {
-  const { visibleTop, listTop, visibleBot, listBot } = metrics;
+  const { visibleTop, visibleBot, listTop } = metrics;
   const { indexFirst, indexLast, itemHeight } = state;
   const { $innerContainer } = listView;
 
@@ -152,7 +151,7 @@ export class RenderContext {
 
   normalize() {
     const { indexFirst, indexLast } = this.state;
-    const { visibleTop, visibleHeight, itemsHeight } = this.metrics;
+    const { visibleTop, itemsHeight } = this.metrics;
     let itemHeight = this.state.itemHeight;
 
     if (indexFirst < indexLast) {
@@ -280,7 +279,7 @@ export class RenderContext {
     const anchor = {};
     let delta = 0;
     if (indexFirst <= index && index < indexLast) {
-      const el  = this.listView.$innerContainer.children().get(index - indexFirst);
+      const el = this.listView.$innerContainer.children().get(index - indexFirst);
       const rect = el.getBoundingClientRect();
 
       anchor.index = index;

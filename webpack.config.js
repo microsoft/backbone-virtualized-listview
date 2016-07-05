@@ -49,12 +49,11 @@ module.exports = {
       },
       // es2015-end
       // react
-			// less
-			{
-				test: /\.less$/,
-				loader: "style!css!less",
-			},
-
+      // less
+      {
+        test: /\.less$/,
+        loader: 'style!css!less',
+      },
     ],
   },
   externals: [getExternals()],
