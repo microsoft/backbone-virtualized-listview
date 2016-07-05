@@ -111,6 +111,8 @@ export class RenderContext {
     this.state = _.pick(listView, stateProperties);
     this.anchor = defaultAnchor(this);
     this.changed = false;
+
+    this.elementHeightCache = {};
   }
 
   measure() {
@@ -218,6 +220,14 @@ export class RenderContext {
     }
   }
 
+  getElementHeight(index, el) {
+    const indexItem = this.state.indexFirst + index;
+    if (!_.has(this.elementHeightCache, indexItem)) {
+      this.elementHeightCache[indexItem] = el.getBoundingClientRect().height;
+    }
+    return this.elementHeightCache[indexItem];
+  }
+
   purge({ top, bottom }) {
     const removal = [];
     let { indexFirst, indexLast } = this.state;
@@ -225,7 +235,7 @@ export class RenderContext {
     let elemTop = itemsTop;
 
     this.listView.$innerContainer.children().each((index, el) => {
-      const height = $(el).height();
+      const height = this.getElementHeight(index, el);
       const elemBot = elemTop + height;
 
       if (elemBot < top) {
