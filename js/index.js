@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import Backbone from 'backbone';
 import defaultListTemplate from './default-list.jade';
 import defaultItemTemplate from './default-item.jade';
@@ -104,10 +103,8 @@ class ListView extends Backbone.View {
   render() {
     this.$el.html(this.listTemplate());
     this.$el.css({ position: 'relative' });
-    this.$innerContainer = $('<div/>');
     this.$container = this.$('.list-container');
     this.$container.css({ paddingBottom: this.itemHeight * this.items.length });
-    this.$container.html(this.$innerContainer);
     this.scheduleRedraw();
     return this;
   }

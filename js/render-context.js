@@ -80,7 +80,7 @@ const stateProperties = ['indexFirst', 'indexLast', 'itemHeight'];
 function defaultAnchor({ metrics, state, listView }) {
   const { visibleTop, visibleBot, listTop } = metrics;
   const { indexFirst, indexLast, itemHeight } = state;
-  const { $innerContainer } = listView;
+  const { $container } = listView;
 
   const indexTop = Math.floor((visibleTop - listTop) / itemHeight);
   const indexBot = Math.ceil((visibleBot - listTop) / itemHeight);
@@ -96,18 +96,34 @@ function defaultAnchor({ metrics, state, listView }) {
     index = indexLast;
   }
 
-  const el = $innerContainer.children().get(index - indexFirst);
+  const el = $container.children().get(index - indexFirst);
   const top = el ? el.getBoundingClientRect().top : index * itemHeight + listTop;
 
   return { index, top };
+}
+
+function getChildrenMetrics($container) {
+  const $children = $container.children();
+  if ($children.length > 0) {
+    const [rectFirst, rectLast] = _.map([
+      $children.first(),
+      $children.last(),
+    ], $el => $el.get(0).getBoundingClientRect());
+
+    return {
+      top: rectFirst.top,
+      bottom: rectLast.bottom,
+    };
+  }
+  return null;
 }
 
 export class RenderContext {
   constructor(listView) {
     this.listView = listView;
     this.viewport = listView.viewport;
-    this.metrics = this.measure();
     this.state = _.pick(listView, stateProperties);
+    this.metrics = this.measure();
     this.anchor = defaultAnchor(this);
     this.changed = false;
 
@@ -115,10 +131,13 @@ export class RenderContext {
   }
 
   measure() {
-    const [rectOuter, rectInner] = _.map([
-      this.listView.$container,
-      this.listView.$innerContainer,
-    ], $el => $el.get(0).getBoundingClientRect());
+    const { $container } = this.listView;
+    const { indexFirst, indexLast, itemHeight } = this.state;
+    const rectContainer = $container.get(0).getBoundingClientRect();
+    const metricsItems = getChildrenMetrics($container) || {
+      top: rectContainer.top + indexFirst * itemHeight,
+      bottom: rectContainer.top + indexLast * itemHeight,
+    };
     const metricsVP = this.viewport.getMetrics();
 
     return new Metrics({
@@ -128,11 +147,11 @@ export class RenderContext {
       visibleTop: metricsVP.outer.top,
       visibleHeight: metricsVP.outer.height,
 
-      listTop: rectOuter.top,
-      listHeight: rectOuter.height,
+      listTop: rectContainer.top,
+      listHeight: rectContainer.height,
 
-      itemsTop: rectInner.top,
-      itemsHeight: rectInner.height,
+      itemsTop: metricsItems.top,
+      itemsHeight: metricsItems.bottom - metricsItems.top,
 
       scrollTop: metricsVP.scroll.y,
     });
@@ -190,7 +209,7 @@ export class RenderContext {
     itemsTop = listTop + itemHeight * indexFirst;
     itemsHeight = 0;
 
-    this.listView.$innerContainer.empty();
+    this.listView.$container.empty();
     _.extend(this.state, { indexFirst, indexLast });
     _.extend(this.metrics, { itemsTop, itemsHeight });
 
@@ -199,12 +218,13 @@ export class RenderContext {
 
   renderTop(index) {
     if (index < this.state.indexFirst) {
-      this.listView.$innerContainer.prepend(_.map(
+      this.listView.$container.prepend(_.map(
         this.listView.items.slice(index, this.state.indexFirst),
         this.listView.itemTemplate
       ));
 
-      const itemsHeight = this.listView.$innerContainer.height();
+      const metricsItems = getChildrenMetrics(this.listView.$container);
+      const itemsHeight = metricsItems.bottom - metricsItems.top;
 
       this.metrics.itemsTop -= itemsHeight - this.metrics.itemsHeight;
       this.metrics.itemsHeight = itemsHeight;
@@ -217,12 +237,13 @@ export class RenderContext {
 
   renderBottom(index) {
     if (index > this.state.indexLast) {
-      this.listView.$innerContainer.append(_.map(
+      this.listView.$container.append(_.map(
         this.listView.items.slice(this.state.indexLast, index),
         this.listView.itemTemplate
       ));
 
-      const itemsHeight = this.listView.$innerContainer.height();
+      const metricsItems = getChildrenMetrics(this.listView.$container);
+      const itemsHeight = metricsItems.bottom - metricsItems.top;
 
       this.metrics.itemsHeight = itemsHeight;
       this.state.indexLast = index;
@@ -246,7 +267,7 @@ export class RenderContext {
     let { itemsTop, itemsHeight } = this.metrics;
     let elemTop = itemsTop;
 
-    this.listView.$innerContainer.children().each((index, el) => {
+    this.listView.$container.children().each((index, el) => {
       const height = this.getElementHeight(index, el);
       const elemBot = elemTop + height;
 
@@ -279,7 +300,7 @@ export class RenderContext {
     const anchor = {};
     let delta = 0;
     if (indexFirst <= index && index < indexLast) {
-      const el = this.listView.$innerContainer.children().get(index - indexFirst);
+      const el = this.listView.$container.children().get(index - indexFirst);
       const rect = el.getBoundingClientRect();
 
       anchor.index = index;
