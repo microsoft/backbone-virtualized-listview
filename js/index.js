@@ -23,6 +23,8 @@ class ListView extends Backbone.View {
     this.indexFirst = 0;
     this.indexLast = 0;
     this.itemHeight = defaultItemHeight;
+    this.anchor = null;
+    this.invalidated = false;
 
     // Events
     this.scheduleRedraw = (() => {
@@ -47,21 +49,20 @@ class ListView extends Backbone.View {
     super.remove();
   }
 
-  redraw({
-    clear = false,
-    anchor = null,
-  } = {}) {
+  redraw() {
     const context = new RenderContext(this);
     const { metrics, state } = context;
 
-    if (anchor) {
-      context.scrollToAnchor(anchor);
+    if (this.anchor) {
+      context.scrollToAnchor(this.anchor);
+      this.anchor = null;
     }
 
-    if (clear ||
+    if (this.invalidated ||
       metrics.itemsTop > metrics.visibleBot ||
       metrics.itemsBot < metrics.visibleTop) {
       context.clear();
+      this.invalidated = false;
     }
 
     let finished = false;
@@ -95,9 +96,13 @@ class ListView extends Backbone.View {
     this.scheduleRedraw({ clear: true });
   }
 
+  invalidate() {
+    this.invalidated = true;
+  }
+
   scrollToItem(index, position = 'top') {
-    const anchor = { index, position };
-    this.scheduleRedraw({ anchor });
+    this.anchor = { index, position };
+    this.scheduleRedraw();
   }
 
   render() {
