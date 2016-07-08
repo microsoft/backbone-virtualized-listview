@@ -100,7 +100,7 @@ export class ElementViewport extends Viewport {
     super($(el));
 
     this.el = this.$el.get(0);
-    this.el.style.overflow = 'scroll';
+    this.el.style.overflow = 'auto';
   }
 
   getMetrics() {

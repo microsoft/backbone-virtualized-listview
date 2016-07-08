@@ -102,7 +102,6 @@ class ListView extends Backbone.View {
 
   render() {
     this.$el.html(this.listTemplate());
-    this.$el.css({ position: 'relative' });
     this.$container = this.$('.list-container');
     this.$container.css({ paddingBottom: this.itemHeight * this.items.length });
     this.scheduleRedraw();
