@@ -2,7 +2,8 @@
   "main": "dist/backbone-virtualized-listview.js",
   "version": "0.1.0",
   "files": [
-    "dist"
+    "dist",
+    "docs"
   ],
   "scripts": {
     "test": "gulp test coveralls",
@@ -48,6 +49,7 @@
     "jade": "^1.11.0",
     "jade-loader": "^0.8.0",
     "jquery": "^2.2.4",
+    "jsdoc": "^3.4.0",
     "karma": "^0.13.22",
     "karma-chrome-launcher": "^1.0.1",
     "karma-coverage": "^1.0.0",

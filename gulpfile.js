@@ -14,6 +14,7 @@ var del = require('del');
 // coveralls
 var coveralls = require('gulp-coveralls');
 // coveralls-end
+var jsdoc = require('gulp-jsdoc3');
 
 function webpackBuild(configFilePath) {
   return function (cb) {
@@ -110,6 +111,11 @@ gulp.task('static', function () {
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
+});
+
+gulp.task('docs', function (cb) {
+  gulp.src(['README.md', './src/**/*.js'], { read: false })
+    .pipe(jsdoc(require('./jsdoc.json'), cb));
 });
 
 gulp.task('webpack', webpackBuild('./webpack.config'));
