@@ -30,13 +30,13 @@ class ListView extends Backbone.View {
     this.scheduleRedraw = (() => {
       let requestId = null;
 
-      return options => {
+      return () => {
         if (requestId !== null) {
           window.cancelAnimationFrame(requestId);
         }
         requestId = window.requestAnimationFrame(() => {
           requestId = null;
-          this.redraw(options);
+          this.redraw();
         });
       };
     })();
@@ -93,7 +93,8 @@ class ListView extends Backbone.View {
 
   setItems(items) {
     this.items = items;
-    this.scheduleRedraw({ clear: true });
+    this.invalidate();
+    this.scheduleRedraw();
   }
 
   invalidate() {
