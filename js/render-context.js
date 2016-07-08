@@ -151,7 +151,7 @@ export class RenderContext {
       ));
 
       const metricsItems = getChildrenMetrics(this.listView.$container);
-      const itemsHeight = metricsItems.bottom - metricsItems.top;
+      const itemsHeight = metricsItems ? metricsItems.bottom - metricsItems.top : 0;
 
       this.metrics.itemsTop -= itemsHeight - this.metrics.itemsHeight;
       this.metrics.itemsHeight = itemsHeight;
@@ -170,7 +170,7 @@ export class RenderContext {
       ));
 
       const metricsItems = getChildrenMetrics(this.listView.$container);
-      const itemsHeight = metricsItems.bottom - metricsItems.top;
+      const itemsHeight = metricsItems ? metricsItems.bottom - metricsItems.top : 0;
 
       this.metrics.itemsHeight = itemsHeight;
       this.state.indexLast = index;
@@ -223,7 +223,9 @@ export class RenderContext {
 
   scrollToAnchor({ index, position }) {
     const { indexFirst, indexLast, itemHeight } = this.state;
-    const { visibleTop, visibleBot, listTop } = this.metrics;
+    const { visibleTop, visibleBot, elHeight, visibleHeight } = this.metrics;
+    let { scrollTop, elTop, listTop, itemsTop } = this.metrics;
+
     const anchor = {};
     let idx = Math.min(Math.max(index, 0), this.listView.items.length - 1);
     let pos = position;
@@ -274,12 +276,17 @@ export class RenderContext {
       delta = listTop + idx * itemHeight - anchor.top;
     }
 
+    const scrollTopNew = Math.max(0, Math.min(elHeight - visibleHeight, scrollTop + delta));
+    delta = scrollTopNew - scrollTop;
+
     if (Math.abs(delta) > 0.1) {
+      scrollTop = scrollTopNew;
+      elTop -= delta;
+      listTop -= delta;
+      itemsTop -= delta;
+
+      this.metrics.set({ scrollTop, elTop, listTop, itemsTop });
       _.extend(this.anchor, anchor);
-      this.metrics.scrollTop += delta;
-      this.metrics.elTop -= delta;
-      this.metrics.listTop -= delta;
-      this.metrics.itemsTop -= delta;
       this.changed = true;
     }
   }
