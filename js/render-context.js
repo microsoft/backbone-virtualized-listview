@@ -273,7 +273,7 @@ export class RenderContext {
         anchor.index = idx;
         anchor.top = visibleTop + pos;
       }
-      delta = listTop + idx * itemHeight - anchor.top;
+      delta = listTop + anchor.index * itemHeight - anchor.top;
     }
 
     const scrollTopNew = Math.max(0, Math.min(elHeight - visibleHeight, scrollTop + delta));
