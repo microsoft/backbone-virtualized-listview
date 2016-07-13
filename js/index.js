@@ -127,28 +127,27 @@ class ListView extends Backbone.View {
       }
     }
 
+    // Update the padding
     if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
-      // Update the padding
       this.$container.css({
         paddingTop: itemHeights.read(indexFirst),
         paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
       });
-
-      // Adjust the scroll if it's changed significantly
-      const listTop = anchor.top - itemHeights.read(anchor.index);
-      const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
-      const scrollTop = visibleTop - innerTop;
-
-      if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
-        this.viewport.scrollTo({ y: scrollTop });
-        this.scheduleRedraw();
-      }
-
-      // Write back the 
-      this.indexFirst = indexFirst;
-      this.indexLast = indexLast;
     }
 
+    // Adjust the scroll if it's changed significantly
+    const listTop = anchor.top - itemHeights.read(anchor.index);
+    const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
+    const scrollTop = visibleTop - innerTop;
+
+    if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
+      this.viewport.scrollTo({ y: scrollTop });
+      this.scheduleRedraw();
+    }
+
+    // Write back the 
+    this.indexFirst = indexFirst;
+    this.indexLast = indexLast;
     this.anchor = null;
     this.invalidated = false;
   }
