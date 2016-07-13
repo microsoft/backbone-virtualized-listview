@@ -66,27 +66,10 @@ function startSeleniumServer() {
 // https://github.com/karma-runner/karma/issues/1788
 // We should switch back to Karma API when the issue is fixed
 //
-// var Server = require('karma').Server;
+//
 //
 
-gulp.task('test:unit', function (cb) {
-  var handler = function (code) {
-    if (code) {
-      cb(new Error('test failure'));
-    } else {
-      cb();
-    }
-  };
-
-  //
-  // Don't use Karma API for now
-  //
-  // new Server({
-  //   configFile: path.join(__dirname, 'karma.conf.js'),
-  //   singleRun: true,
-  // }, handler).start();
-  //
-
+function testWithKarmaCmd(handler) {
   var karmaCmd = path.resolve('./node_modules/.bin/karma');
 
   if (process.platform === 'win32') {
@@ -97,6 +80,25 @@ gulp.task('test:unit', function (cb) {
     'start',
     '--single-run',
   ], { stdio: 'inherit' }).on('close', handler);
+}
+
+function testWithKarmaAPI(handler) {
+  var Server = require('karma').Server;
+  new Server({
+    configFile: path.join(__dirname, 'karma.conf.js'),
+    singleRun: true,
+  }, handler).start();
+}
+
+gulp.task('test:unit', function (cb) {
+  var handler = function (code) {
+    if (code) {
+      cb(new Error('test failure'));
+    } else {
+      cb();
+    }
+  };
+  testWithKarmaAPI(handler);
 });
 
 // coveralls
