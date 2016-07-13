@@ -37,20 +37,12 @@ class Viewport {
     this.$el.on('scroll', this.onScroll);
 
     this.scrollTo = scrollNew => {
-      if (!scroll) {
-        window.setTimeout(() => {
-          if (scroll) {
-            if (_.isNumber(scroll.x)) {
-              this.$el.scrollLeft(scroll.x);
-            }
-            if (_.isNumber(scroll.y)) {
-              this.$el.scrollTop(scroll.y);
-            }
-            scroll = null;
-          }
-        }, 0.1);
+      if (_.isNumber(scrollNew.x)) {
+        this.$el.scrollLeft(scrollNew.x);
       }
-      scroll = scrollNew;
+      if (_.isNumber(scrollNew.y)) {
+        this.$el.scrollTop(scrollNew.y);
+      }
     };
   }
 

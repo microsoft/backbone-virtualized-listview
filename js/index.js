@@ -71,12 +71,16 @@ class ListView extends Backbone.View {
       };
     }
 
+    let renderTop = false;
+    let renderBot = false;
     let renderMore = true;
 
     while (renderMore) {
       const listTop = anchor.top - itemHeights.read(anchor.index);
       const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
       const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
+      const renderFirst = Math.max(targetFirst - 10, 0);
+      const renderLast = Math.min(targetLast + 10, items.length);
 
       renderMore = false;
 
@@ -90,55 +94,61 @@ class ListView extends Backbone.View {
 
       // Render top
       if (targetFirst < indexFirst) {
-        $container.prepend(items.slice(targetFirst, indexFirst).map(itemTemplate));
-        $container.children().slice(0, indexFirst - targetFirst).each((offset, el) => {
-          itemHeights.writeSingle(targetFirst + offset, el.offsetHeight);
+
+        $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
+        $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
+          itemHeights.writeSingle(renderFirst + offset, el.offsetHeight);
         });
-        indexFirst = targetFirst;
-        renderMore = true;
-      } else if (targetFirst > indexFirst) {
+        indexFirst = renderFirst;
+        renderMore = renderTop = true;
+      } else if (renderBot && !renderTop && renderFirst > indexFirst) {
         const removal = [];
-        $container.children().slice(0, targetFirst - indexFirst).each((offset, el) => removal.push(el));
+        $container.children().slice(0, renderFirst - indexFirst).each((offset, el) => removal.push(el));
         $(removal).remove();
-        indexFirst = targetFirst;
+        indexFirst = renderFirst;
         renderMore = true;
       }
 
       // Render bottom
       if (targetLast > indexLast) {
-        $container.append(items.slice(indexLast, targetLast).map(itemTemplate));
+
+        $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
         $container.children().slice(indexLast - indexFirst).each((offset, el) => {
           itemHeights.writeSingle(indexLast + offset, el.offsetHeight);
         });
-        indexLast = targetLast;
-        renderMore = true;
-      } else if (targetLast < indexLast) {
+        indexLast = renderLast;
+        renderMore = renderBot = true;
+      } else if (renderTop && !renderBot && renderLast < indexLast) {
         const removal = [];
-        $container.children().slice(targetLast - indexFirst).each((offset, el) => removal.push(el));
+        $container.children().slice(renderLast - indexFirst).each((offset, el) => removal.push(el));
         $(removal).remove();
-        indexLast = targetLast;
+        indexLast = renderLast;
         renderMore = true;
       }
     }
 
-    this.$container.css({
-      paddingTop: itemHeights.read(indexFirst),
-      paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
-    });
+    if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
+      // Update the padding
+      this.$container.css({
+        paddingTop: itemHeights.read(indexFirst),
+        paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
+      });
 
-    // Adjust the scroll
-    const listTop = anchor.top - itemHeights.read(anchor.index);
-    const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
-    const scrollTop = visibleTop - innerTop;
-    this.viewport.scrollTo({ y: scrollTop });
+      // Adjust the scroll if it's changed significantly
+      const listTop = anchor.top - itemHeights.read(anchor.index);
+      const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
+      const scrollTop = visibleTop - innerTop;
 
-    // Trigger another redraw if the scroll is changed significantly
-    if (Math.abs(scrollTop - metricsViewport.scroll.y) > 0.1) {
-      this.scheduleRedraw();
+      if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
+        this.viewport.scrollTo({ y: scrollTop });
+        this.scheduleRedraw();
+      }
+
+      // Write back the 
+      this.indexFirst = indexFirst;
+      this.indexLast = indexLast;
     }
 
-    this.indexFirst = indexFirst;
-    this.indexLast = indexLast;
     this.anchor = null;
     this.invalidated = false;
   }
