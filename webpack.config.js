@@ -30,7 +30,7 @@ module.exports = {
     umdNamedDefine: false,
     devtoolModuleFilenameTemplate: function (info) {
       if (path.isAbsolute(info.absoluteResourcePath)) {
-        return 'webpack-src:///backbone-virtualized-listview-example/' + path.relative('.', info.absoluteResourcePath);
+        return 'webpack-src:///backbone-virtualized-listview/' + path.relative('.', info.absoluteResourcePath);
       }
       return info.absoluteResourcePath;
     },
@@ -41,21 +41,13 @@ module.exports = {
       { test: /\.jade$/, loader: 'jade-loader' },
       // jade-end
       // es2015
-      {
-        test: /\.(js|es6?)$/,
-        exclude: /node_modules/,
-        loader: 'babel-loader',
-        query: { presets: ['es2015'] },
-      },
+      { test: /\.js$/, exclude: /\bnode_modules\b/, loader: 'babel-loader' },
       // es2015-end
       // react
-      // less
-      {
-        test: /\.less$/,
-        loader: 'style!css!less',
-      },
+      { test: /\.less$/, loader: 'style!css!less' },
     ],
   },
+  babel: { presets: ['es2015'] },
   externals: [getExternals()],
   resolve: { alias: webpackAlias },
   devtool: 'source-map',

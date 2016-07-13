@@ -5,13 +5,15 @@ function getWebpackConfig() {
   var webpackConfig = _.omit(require('./webpack.config'), 'entry', 'externals');
   _.defaults(webpackConfig, { module: {} });
 
-  webpackConfig.module.preLoaders = [
-    {
-      test: /\.js$/,
-      include: path.resolve('./js/'),
-      loader: 'istanbul-instrumenter',
-    },
-  ].concat(webpackConfig.module.preLoaders || []);
+  webpackConfig.module.preLoaders = [{
+    test: /\.js$/,
+    include: path.resolve('./js/'),
+    loader: 'babel',
+  }, {
+    test: /\.js$/,
+    include: path.resolve('./js/'),
+    loader: 'isparta',
+  }].concat(webpackConfig.module.preLoaders || []);
 
   return webpackConfig;
 }
@@ -35,7 +37,7 @@ module.exports = function (config) {
     reporters: ['mocha', 'coverage'],
 
     preprocessors: {
-      'speclist.js': ['webpack'],
+      'speclist.js': 'webpack',
     },
 
     webpack: getWebpackConfig(),
