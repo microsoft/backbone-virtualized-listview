@@ -51,7 +51,12 @@ gulp.task('download-selenium', function (cb) {
 
 function startSeleniumServer() {
   var filePath = getSeleniumFilePath();
-  return childProcess.spawn('java', ['-jar', filePath], { stdio: 'inherit' });
+  return childProcess.spawn('java', ['-jar', filePath], {
+    stdio: 'inherit',
+    env: {
+      path: path.join(__dirname, 'node_modules', '.bin'),
+    }
+  });
 }
 
 //
@@ -95,7 +100,7 @@ gulp.task('test:unit', function (cb) {
 });
 
 // coveralls
-gulp.task('coveralls', ['test'], function () {
+gulp.task('coveralls', ['test:unit'], function () {
   if (!process.env.CI) {
     return;
   }
