@@ -2,11 +2,18 @@ import _ from 'underscore';
 import Promise from 'bluebird';
 
 export function sleep(timeInterval) {
-  return new Promise(_.partial(window.setTimeout, _, timeInterval));
+  return new Promise((resolve, reject) => {
+    window.setTimeout(() => resolve(), timeInterval);
+  });
 }
 
-export function test(testCase) {
-  return function (cb) {
-    Promise.resolve(testCase(this)).then(() => cb()).catch(cb);
+export function doAsync(fn) {
+  return async function (done) {
+    try {
+      await fn(this);
+      done();
+    } catch (err) {
+      done(err);
+    }
   };
 }

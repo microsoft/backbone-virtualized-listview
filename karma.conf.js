@@ -51,8 +51,8 @@ module.exports = function (config) {
     },
 
     browsers: [
-      'Firefox',
       // 'Electron',
+      'Firefox',
       // 'Chrome',
     ],
   });

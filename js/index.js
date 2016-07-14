@@ -91,14 +91,16 @@ class ListView extends Backbone.View {
         $container.empty();
         indexFirst = indexLast = targetFirst;
         invalidated = false;
-        renderMore = true;
+        if (items.length > 0) {
+          renderMore = true;
+        }
       }
 
       // Render top
       if (targetFirst < indexFirst) {
         $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
         $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
-          itemHeights.writeSingle(renderFirst + offset, el.offsetHeight);
+          itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
         });
         indexFirst = renderFirst;
         renderMore = renderTop = true;
@@ -114,7 +116,7 @@ class ListView extends Backbone.View {
       if (targetLast > indexLast) {
         $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
         $container.children().slice(indexLast - indexFirst).each((offset, el) => {
-          itemHeights.writeSingle(indexLast + offset, el.offsetHeight);
+          itemHeights.writeSingle(indexLast + offset, el.getBoundingClientRect().height);
         });
         indexLast = renderLast;
         renderMore = renderBot = true;
@@ -140,7 +142,7 @@ class ListView extends Backbone.View {
     // Adjust the scroll if it's changed significantly
     const listTop = anchor.top - itemHeights.read(anchor.index);
     const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
-    const scrollTop = visibleTop - innerTop;
+    const scrollTop = Math.round(visibleTop - innerTop);
 
     if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
       this.viewport.scrollTo({ y: scrollTop });

@@ -57,7 +57,6 @@ function startSeleniumServer() {
   });
 }
 
-/*
 function testWithKarmaCmd(handler) {
   var karmaCmd = path.resolve('./node_modules/.bin/karma');
 
@@ -70,8 +69,8 @@ function testWithKarmaCmd(handler) {
     '--single-run',
   ], { stdio: 'inherit' }).on('close', handler);
 }
-*/
 
+/*
 function testWithKarmaAPI(handler) {
   var Server = require('karma').Server;
   new Server({
@@ -79,6 +78,7 @@ function testWithKarmaAPI(handler) {
     singleRun: true,
   }, handler).start();
 }
+*/
 
 gulp.task('test:unit', function (cb) {
   var handler = function (code) {
@@ -88,7 +88,7 @@ gulp.task('test:unit', function (cb) {
       cb();
     }
   };
-  testWithKarmaAPI(handler);
+  testWithKarmaCmd(handler);
 });
 
 // coveralls
