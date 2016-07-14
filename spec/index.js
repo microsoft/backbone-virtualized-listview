@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import ListView from '../js/index.js';
 import template from './test-container.jade';
 
-const wait = t => new Promise((resolve, reject) => window.setTimeout(resolve), t);
+const wait = t => new Promise((resolve, reject) => setTimeout(resolve, t));
 
 describe('ListView', function () {
   beforeEach(function () {
