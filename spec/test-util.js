@@ -1,8 +1,7 @@
-import _ from 'underscore';
 import Promise from 'bluebird';
 
 export function sleep(timeInterval) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     window.setTimeout(() => resolve(), timeInterval);
   });
 }

@@ -108,7 +108,7 @@ describe('ListView', function () {
         await sleep(redrawInterval);
 
         checkWindowFillup();
-      };
+      }
     }));
 
     it('should fill up the window while scrolling down continuously', doAsync(async () => {
@@ -117,7 +117,7 @@ describe('ListView', function () {
         await sleep(redrawInterval);
 
         checkWindowFillup();
-      };
+      }
     }));
 
     it('should fill up the window while scrolling up continuously', doAsync(async () => {
@@ -126,7 +126,7 @@ describe('ListView', function () {
         await sleep(redrawInterval);
 
         checkWindowFillup();
-      };
+      }
     }));
 
     it('should be able to scroll an element to top', doAsync(async () => {
@@ -229,15 +229,15 @@ describe('ListView', function () {
     }));
 
     it('should complain about wrong position opitons', function () {
-      for (let pos of [
+      _.each([
         true,
         'some-where',
         { foo: 'bar' },
-        [ 'foo', 'bar' ],
+        ['foo', 'bar'],
         _.noop,
-      ]) {
+      ], pos => {
         expect(() => listView.scrollToItem(0, pos)).to.throw('Invalid position');
-      }
+      });
     });
 
     it('should be able to reset the items', doAsync(async () => {
