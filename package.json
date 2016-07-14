@@ -6,7 +6,7 @@
     "docs"
   ],
   "scripts": {
-    "test": "gulp test:unit coveralls",
+    "test": "gulp test coveralls",
     "prepublish": "gulp prepublish"
   },
   "license": "MIT",

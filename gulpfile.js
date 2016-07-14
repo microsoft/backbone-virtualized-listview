@@ -102,7 +102,7 @@ gulp.task('test:unit', function (cb) {
 });
 
 // coveralls
-gulp.task('coveralls', ['test:unit'], function () {
+gulp.task('coveralls', ['test'], function () {
   if (!process.env.CI) {
     return;
   }
@@ -156,7 +156,7 @@ gulp.task('test:demos', ['download-selenium'], function (done) {
   });
 });
 
-gulp.task('test', ['test:unit', 'test:demos']);
+gulp.task('test', ['test:unit'/*, 'test:demos'*/]);
 
 gulp.task('prepublish', ['webpack']);
 
