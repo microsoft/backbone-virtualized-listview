@@ -1,4 +1,5 @@
 ---
+"parser": "babel-eslint"
 "extends": "xo-space"
 "env":
   "mocha": true
@@ -12,3 +13,12 @@
     - 2
     - "always"
   "linebreak-style": 0
+  "curly":
+    - 2
+    - "multi-line"
+  "arrow-parens": 0
+  "babel/arrow-parens":
+    - 2
+    - "as-needed"
+"plugins":
+  - "babel"

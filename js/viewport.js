@@ -19,16 +19,12 @@ class Viewport {
 
     this.$el = $el;
 
-    let scroll = null;
-
     this.onScroll = () => {
-      scroll = null;
       this.trigger('scroll');
       this.trigger('change');
     };
 
     this.onResize = () => {
-      scroll = null;
       this.trigger('resize');
       this.trigger('change');
     };

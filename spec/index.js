@@ -1,12 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
-import Promise from 'bluebird';
 import { expect } from 'chai';
 import ListView from '../js/index.js';
 import template from './test-container.jade';
-
-const wait = t => new Promise((resolve, reject) => setTimeout(resolve, t));
+import { test, sleep } from './test-util.js';
 
 describe('ListView', function () {
   beforeEach(function () {
@@ -31,11 +29,10 @@ describe('ListView', function () {
       }).render();
     });
 
-    it('should create the ListView correctly', function (cb) {
+    it('should create the ListView correctly', test(async () => {
       expect($('.test-container').get(0)).to.equal(listView.el);
-      wait(50).then(() => {
-        expect($('.test-container').find('li').length).to.be.above(0);
-      }).then(() => cb()).catch(cb);
-    });
+      await sleep(50);
+      expect($('.test-container > ul > li').length).to.be.above(0);
+    }));
   });
 });

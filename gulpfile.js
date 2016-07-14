@@ -53,22 +53,11 @@ function startSeleniumServer() {
   var filePath = getSeleniumFilePath();
   return childProcess.spawn('java', ['-jar', filePath], {
     stdio: 'inherit',
-    env: {
-      path: path.join(__dirname, 'node_modules', '.bin'),
-    }
+    env: { path: path.join(__dirname, 'node_modules', '.bin') },
   });
 }
 
-//
-// Don't use Karma API for now
-// For karma version 0.13.19 - 0.13.22, there's issue 1788
-// -- Karma 0.13.19 taking long time to complete when run via gulp
-// https://github.com/karma-runner/karma/issues/1788
-// We should switch back to Karma API when the issue is fixed
-//
-//
-//
-
+/*
 function testWithKarmaCmd(handler) {
   var karmaCmd = path.resolve('./node_modules/.bin/karma');
 
@@ -81,6 +70,7 @@ function testWithKarmaCmd(handler) {
     '--single-run',
   ], { stdio: 'inherit' }).on('close', handler);
 }
+*/
 
 function testWithKarmaAPI(handler) {
   var Server = require('karma').Server;
@@ -113,7 +103,7 @@ gulp.task('coveralls', ['test'], function () {
 // coveralls-end
 
 gulp.task('static', function () {
-  return gulp.src('**/*.js')
+  return gulp.src(['js/**/*.js', 'demos/**/*.js', 'spec/**/*.js'])
     .pipe(excludeGitignore())
     .pipe(eslint())
     .pipe(eslint.format())
@@ -156,7 +146,7 @@ gulp.task('test:demos', ['download-selenium'], function (done) {
   });
 });
 
-gulp.task('test', ['test:unit'/*, 'test:demos'*/]);
+gulp.task('test', ['test:unit']);
 
 gulp.task('prepublish', ['webpack']);
 

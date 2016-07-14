@@ -47,7 +47,7 @@ module.exports = {
       { test: /\.less$/, loader: 'style!css!less' },
     ],
   },
-  babel: { presets: ['es2015'] },
+  babel: { presets: ['es2015', 'stage-3'] },
   externals: [getExternals()],
   resolve: { alias: webpackAlias },
   devtool: 'source-map',

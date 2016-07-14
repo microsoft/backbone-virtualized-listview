@@ -6,6 +6,10 @@ import defaultListTemplate from './default-list.jade';
 import defaultItemTemplate from './default-item.jade';
 import { ElementViewport, WindowViewport } from './viewport.js';
 
+const forever = func => {
+  while (func());
+};
+
 class ListView extends Backbone.View {
   initialize({
     listTemplate = defaultListTemplate,
@@ -31,7 +35,6 @@ class ListView extends Backbone.View {
 
     this.anchor = null;
     this.invalidated = false;
-
 
     // Events
     this.scheduleRedraw = (() => {
@@ -73,16 +76,15 @@ class ListView extends Backbone.View {
 
     let renderTop = false;
     let renderBot = false;
-    let renderMore = true;
 
-    while (renderMore) {
+    forever(() => {
       const listTop = anchor.top - itemHeights.read(anchor.index);
       const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
       const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
       const renderFirst = Math.max(targetFirst - 10, 0);
       const renderLast = Math.min(targetLast + 10, items.length);
 
-      renderMore = false;
+      let renderMore = false;
 
       // Clean up
       if (targetFirst >= indexLast || targetLast <= indexFirst || invalidated) {
@@ -94,7 +96,6 @@ class ListView extends Backbone.View {
 
       // Render top
       if (targetFirst < indexFirst) {
-
         $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
         $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
           itemHeights.writeSingle(renderFirst + offset, el.offsetHeight);
@@ -111,7 +112,6 @@ class ListView extends Backbone.View {
 
       // Render bottom
       if (targetLast > indexLast) {
-
         $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
         $container.children().slice(indexLast - indexFirst).each((offset, el) => {
           itemHeights.writeSingle(indexLast + offset, el.offsetHeight);
@@ -125,7 +125,9 @@ class ListView extends Backbone.View {
         indexLast = renderLast;
         renderMore = true;
       }
-    }
+
+      return renderMore;
+    });
 
     // Update the padding
     if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
@@ -145,7 +147,7 @@ class ListView extends Backbone.View {
       this.scheduleRedraw();
     }
 
-    // Write back the 
+    // Write back the render state
     this.indexFirst = indexFirst;
     this.indexLast = indexLast;
     this.anchor = null;
@@ -154,7 +156,7 @@ class ListView extends Backbone.View {
 
   reset({
     items = this.items,
-    defaultItemHeight = this.defaultItemHeight
+    defaultItemHeight = this.defaultItemHeight,
   }) {
     this.items = items;
     this.defaultItemHeight = defaultItemHeight;
@@ -212,7 +214,7 @@ class ListView extends Backbone.View {
       this.anchor = {
         index: index,
         top: visibleTop + pos,
-      }
+      };
     } else {
       throw new Error('Invalid position');
     }

@@ -6,7 +6,7 @@
     "docs"
   ],
   "scripts": {
-    "test": "gulp test coveralls",
+    "test": "gulp static test coveralls",
     "prepublish": "gulp prepublish"
   },
   "license": "MIT",
@@ -28,8 +28,11 @@
   },
   "devDependencies": {
     "babel-core": "^6.9.0",
+    "babel-eslint": "^6.1.2",
     "babel-loader": "^6.2.4",
+    "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-3": "^6.11.0",
     "backbone": "^1.3.3",
     "bluebird": "^3.4.1",
     "chai": "^3.5.0",
@@ -39,6 +42,7 @@
     "eslint": "^2.10.2",
     "eslint-config-xo": "^0.14.1",
     "eslint-config-xo-space": "^0.13.0",
+    "eslint-plugin-babel": "^3.3.0",
     "fast-binary-indexed-tree": "0.0.1",
     "gulp": "^3.9.1",
     "gulp-coveralls": "^0.1.4",
