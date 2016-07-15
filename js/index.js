@@ -6,11 +6,54 @@ import defaultListTemplate from './default-list.jade';
 import defaultItemTemplate from './default-item.jade';
 import { ElementViewport, WindowViewport } from './viewport.js';
 
-const forever = func => {
+// Helper function to created a scoped while loop
+const whileTrue = func => {
   while (func());
 };
 
+/**
+ * The virtualized list view class.
+ *
+ * @param {Object} options
+ * The constructor options.
+ *
+ * @param {function} [options.listTemplate]
+ * The template of the list view.
+ *
+ * It must contain an empty element with class name `'list-container'`, as
+ * the parrent of all list items.
+ * 
+ * By default, it would render a single `UL`.
+ *
+ * @param {function} [options.itemTemplate]
+ * The template of the list items.
+ * 
+ * Note: list items **MUST NOT** have outer margins, otherwise the layout
+ * calculation will be inaccurate.
+ *
+ * By default, it would render a single `LI` filled with `item.text`.
+ *
+ * @param {Object[]} [options.items=[]]
+ * The list data items.
+ *
+ * @param {number} [options.defaultItemHeight=20]
+ * The estimated height of a single item.
+ *
+ * It's not necessary to be accurate. But the accurater it is, the less
+ * the scroll bar is adjusted overtime.
+ *
+ * @param {string} [options.viewport]
+ * The CSS selector to locate the scrollable viewport.
+ *
+ * If it's omitted, the `window` will be used as the viewport.
+ *
+ */
 class ListView extends Backbone.View {
+
+  /**
+   * Backbone view initializer
+   * @see ListView
+   */
   initialize({
     listTemplate = defaultListTemplate,
     itemTemplate = defaultItemTemplate,
@@ -18,7 +61,7 @@ class ListView extends Backbone.View {
     items = [],
     defaultItemHeight = 20,
     viewport = null,
-  }) {
+  } = {}) {
     this.listTemplate = listTemplate;
     this.itemTemplate = itemTemplate;
     this.events = events;
@@ -29,7 +72,7 @@ class ListView extends Backbone.View {
     this.indexFirst = 0;
     this.indexLast = 0;
     this.itemHeights = new BinaryIndexedTree({
-      defaultFrequency: defaultItemHeight,
+      defaultFrequency: Math.max(defaultItemHeight, 1),
       maxVal: items.length,
     });
 
@@ -37,28 +80,32 @@ class ListView extends Backbone.View {
     this.invalidated = false;
 
     // Events
-    this.scheduleRedraw = (() => {
+    this._scheduleRedraw = (() => {
       let requestId = null;
 
       return () => {
         if (!requestId) {
           requestId = window.requestAnimationFrame(() => {
             requestId = null;
-            this.redraw();
+            this._redraw();
           });
         }
       };
     })();
 
-    this.viewport.on('change', this.scheduleRedraw);
+    this.viewport.on('change', this._scheduleRedraw);
   }
 
+  /**
+   * Remove the view and unregister the event listeners.
+   */
   remove() {
     this.viewport.remove();
     super.remove();
   }
 
-  redraw() {
+  // Private API, redraw immediately
+  _redraw() {
     const { viewport, itemHeights, $container, items, itemTemplate } = this;
     let { indexFirst, indexLast, anchor, invalidated } = this;
 
@@ -77,7 +124,7 @@ class ListView extends Backbone.View {
     let renderTop = false;
     let renderBot = false;
 
-    forever(() => {
+    whileTrue(() => {
       const listTop = anchor.top - itemHeights.read(anchor.index);
       const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
       const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
@@ -146,7 +193,7 @@ class ListView extends Backbone.View {
 
     if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
       this.viewport.scrollTo({ y: scrollTop });
-      this.scheduleRedraw();
+      this._scheduleRedraw();
     }
 
     // Write back the render state
@@ -164,12 +211,18 @@ class ListView extends Backbone.View {
         index,
         top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
       };
-      this.scheduleRedraw();
+      this._scheduleRedraw();
     } else {
       this.anchor = null;
     }
   }
 
+  /**
+   * Reset the items and defaultItemHeight.
+   * @param {Object} options
+   * @param {Object[]} [options.items] The new data items.
+   * @param {number} [options.defaultItemHeight] The new estimated item height.
+   */
   reset({
     items = this.items,
     defaultItemHeight = this.defaultItemHeight,
@@ -181,17 +234,46 @@ class ListView extends Backbone.View {
       maxVal: items.length,
     });
     this.invalidate();
-    this.scheduleRedraw();
+    this._scheduleRedraw();
   }
 
+  /**
+   * Reset the items. Short-cut for `listView.reset({ items })`.
+   * @param {Object[]} items The new data items.
+   */
   setItems(items) {
     this.reset({ items });
   }
 
+  /**
+   * Reset the estimated item height.
+   * @param {number} defaultItemHeight The new estimated item height.
+   */
+  setDefaultItemHeight(defaultItemHeight) {
+    this.reset({ defaultItemHeight });
+  }
+
+  /**
+   * Invalidate the already rendered items.
+   */
   invalidate() {
     this.invalidated = true;
   }
 
+  /**
+   * Scroll to a certain item.
+   * @param {number} index The index of the item. 
+   * @param {string|number} [position='default'] The position of the item.
+   *
+   * The valid positions are
+   *   * `'default'`, if the item is above the viewport top, scroll it to the
+   *     top, if the item is below the viewport bottom, scroll it to the bottom,
+   *     otherwise, keep the viewport unchanged.
+   *   * `'top'`, scroll the item to top of the viewport.
+   *   * `'middle'`, scroll the item to the vertical center of the viewport.
+   *   * `'bottom'`, scroll the item to the bottom of the viewport.
+   *   * `{number}`, scroll the item to the given offset from the viewport top.
+   */
   scrollToItem(index, position = 'default') {
     const metricsViewport = this.viewport.getMetrics();
     const visibleTop = metricsViewport.outer.top;
@@ -236,14 +318,17 @@ class ListView extends Backbone.View {
       throw new Error('Invalid position');
     }
 
-    this.scheduleRedraw();
+    this._scheduleRedraw();
   }
 
+  /**
+   * Render the list view.
+   */
   render() {
     this.$el.html(this.listTemplate());
     this.$container = this.$('.list-container');
     this.$container.css({ paddingBottom: this.itemHeights.read(this.items.length) });
-    this.scheduleRedraw();
+    this._scheduleRedraw();
     return this;
   }
 

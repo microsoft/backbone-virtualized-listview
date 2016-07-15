@@ -110,7 +110,7 @@ gulp.task('static', function () {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('docs', function (cb) {
+gulp.task('jsdoc', function (cb) {
   gulp.src(['README.md', './src/**/*.js'], { read: false })
     .pipe(jsdoc(require('./jsdoc.json'), cb));
 });
