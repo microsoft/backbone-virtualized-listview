@@ -13,7 +13,7 @@ function getElementMetrics(el) {
   ]);
 }
 
-class Viewport {
+export class Viewport {
   constructor($el) {
     _.extend(this, Backbone.Events);
 

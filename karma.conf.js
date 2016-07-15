@@ -13,7 +13,16 @@ function getWebpackConfig() {
     test: /\.js$/,
     include: path.resolve('./js/'),
     loader: 'isparta',
+  }, {
+    test: /sinon\.js$/,
+    loader: 'imports?define=>false,require=>false',
   }].concat(webpackConfig.module.preLoaders || []);
+
+  _.defaults(webpackConfig, { resolve: {} });
+
+  _.extend(webpackConfig.resolve.alias, {
+    sinon: 'sinon/pkg/sinon.js',
+  });
 
   return webpackConfig;
 }
