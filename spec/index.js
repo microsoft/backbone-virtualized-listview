@@ -85,7 +85,7 @@ describe('ListView', function () {
       }
 
       function checkScrolledToTop() {
-        const scrollTop = listView.viewport.getMetrics().scroll.y; 
+        const scrollTop = listView.viewport.getMetrics().scroll.y;
 
         expect(Math.abs(scrollTop)).to.be.below(1);
       }
@@ -93,7 +93,7 @@ describe('ListView', function () {
       function checkScrolledToBottom() {
         const metrics = viewportMetrics();
         const scrollTopMax = metrics.inner.height - metrics.outer.height;
-        const scrollTop = metrics.scroll.y; 
+        const scrollTop = metrics.scroll.y;
 
         expect(Math.abs(scrollTop - scrollTopMax)).to.be.below(1);
       }
@@ -108,7 +108,7 @@ describe('ListView', function () {
         const rectLast = elLast.getBoundingClientRect();
         const height = viewportMetrics().outer.height;
 
-        expect(rectLast.bottom).to.be.at.least(height);;
+        expect(rectLast.bottom).to.be.at.least(height);
       });
 
       it('should fill up the viewport after jump scrolling', doAsync(async () => {
