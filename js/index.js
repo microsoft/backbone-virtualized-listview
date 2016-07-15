@@ -152,8 +152,22 @@ class ListView extends Backbone.View {
     // Write back the render state
     this.indexFirst = indexFirst;
     this.indexLast = indexLast;
-    this.anchor = null;
     this.invalidated = false;
+
+    // Do a second scroll for a middle anchor after the item is rendered
+    if (anchor.isMiddle) {
+      const index = anchor.index;
+      const itemTop = rectContainer.top + this.itemHeights.read(index);
+      const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
+
+      this.anchor = {
+        index,
+        top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
+      };
+      this.scheduleRedraw();
+    } else {
+      this.anchor = null;
+    }
   }
 
   reset({
@@ -211,6 +225,7 @@ class ListView extends Backbone.View {
       this.anchor = {
         index: index,
         top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
+        isMiddle: true,
       };
     } else if (typeof pos === 'number') {
       this.anchor = {
