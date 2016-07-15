@@ -234,7 +234,6 @@ class ListView extends Backbone.View {
       maxVal: items.length,
     });
     this.invalidate();
-    this._scheduleRedraw();
   }
 
   /**
@@ -254,10 +253,11 @@ class ListView extends Backbone.View {
   }
 
   /**
-   * Invalidate the already rendered items.
+   * Invalidate the already rendered items and schedule another redraw.
    */
   invalidate() {
     this.invalidated = true;
+    this._scheduleRedraw();
   }
 
   /**
