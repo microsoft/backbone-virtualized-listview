@@ -138,7 +138,7 @@ class ListView extends Backbone.View {
         $container.empty();
         indexFirst = indexLast = targetFirst;
         invalidated = false;
-        if (items.length > 0) {
+        if (targetFirst !== targetLast && items.length > 0) {
           renderMore = true;
         }
       }
@@ -225,8 +225,8 @@ class ListView extends Backbone.View {
    */
   reset({
     items = this.items,
-    defaultItemHeight = this.defaultItemHeight,
-  }) {
+    defaultItemHeight = this.itemHeights.defaultFrequency,
+  } = {}) {
     this.items = items;
     this.defaultItemHeight = defaultItemHeight;
     this.itemHeights = new BinaryIndexedTree({
