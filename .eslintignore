@@ -1,0 +1,8 @@
+# npm packages
+node_modules
+
+# code coverage
+coverage
+
+# output folder
+dist

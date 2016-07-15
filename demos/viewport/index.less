@@ -1,0 +1,33 @@
+body {
+  padding: 0;
+  margin: 0;
+}
+
+#window-position {
+  position: fixed;
+  height: 20px;
+  width: 100%;
+  background: LightBlue;
+  padding-left: 20px;
+}
+
+#content {
+  width: 1000px;
+  height: 600px;
+
+  #outer {
+    width: 100px;
+    height: 100px;
+
+    #inner {
+      width: 200px;
+      height: 200px;
+    }
+  }
+}
+
+#outer {
+  position: relative;
+  left: 200px;
+  top: 200px;
+}

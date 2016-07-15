@@ -1,0 +1,29 @@
+---
+"parser": "babel-eslint"
+"extends": "xo-space"
+"env":
+  "mocha": true
+  "amd": true
+  "browser": true
+"rules":
+  "comma-dangle":
+    - 2
+    - "always-multiline"
+  "object-curly-spacing":
+    - 2
+    - "always"
+  "linebreak-style": 0
+  "curly":
+    - 2
+    - "multi-line"
+  "max-nested-callbacks":
+    - 2
+    - 10
+  "arrow-parens": 0
+  "babel/arrow-parens":
+    - 2
+    - "as-needed"
+  "generator-star-spacing": 0
+  "babel/generator-star-spacing": 2
+"plugins":
+  - "babel"

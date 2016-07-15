@@ -1,0 +1,24 @@
+# npm packages
+node_modules
+
+# code coverage
+coverage
+
+# test output
+errorShots
+test-results
+
+# output folder
+dist
+docs
+
+# npm logs
+node-debug.log
+npm-debug.log
+
+# npm config
+.npmrc
+
+# generated code for example pages
+examples/requirejs/require.config.js
+examples/webpack/dist
