@@ -84,19 +84,52 @@
 
 
     <section class="readme-section">
-        <article><h1><a href="https://github.com/Microsoft/backbone-virtualized-listview">backbone-virtualized-listview</a></h1><p>  <a href="https://npmjs.org/package/backbone-virtualized-listview"><img src="https://badge.fury.io/js/backbone-virtualized-listview.svg" alt="NPM version"></a> <a href="https://travis-ci.org/Microsoft/backbone-virtualized-listview"><img src="https://travis-ci.org/Microsoft/backbone-virtualized-listview.svg?branch=master" alt="Build Status"></a> <a href="https://david-dm.org/Microsoft/backbone-virtualized-listview"><img src="https://david-dm.org/Microsoft/backbone-virtualized-listview.svg?theme=shields.io" alt="Dependency Status"></a> <a href="https://coveralls.io/r/Microsoft/backbone-virtualized-listview"><img src="https://coveralls.io/repos/Microsoft/backbone-virtualized-listview/badge.svg" alt="Coverage percentage"></a></p>
+        <article><h1><a href="https://github.com/Microsoft/backbone-virtualized-listview">backbone-virtualized-listview</a></h1><p>  <a href="https://npmjs.org/package/backbone-virtualized-listview"><img src="https://badge.fury.io/js/backbone-virtualized-listview.svg" alt="NPM version"></a>
+  <a href="https://travis-ci.org/Microsoft/backbone-virtualized-listview"><img src="https://travis-ci.org/Microsoft/backbone-virtualized-listview.svg?branch=master" alt="Build Status"></a>
+  <a href="https://david-dm.org/Microsoft/backbone-virtualized-listview"><img src="https://david-dm.org/Microsoft/backbone-virtualized-listview.svg?theme=shields.io" alt="Dependency Status"></a>
+  <a href="https://coveralls.io/r/Microsoft/backbone-virtualized-listview"><img src="https://coveralls.io/repos/Microsoft/backbone-virtualized-listview/badge.svg" alt="Coverage percentage"></a></p>
+<blockquote>
 <p>Backbone list view with virtualization support</p>
-<h2>Install</h2><pre class="prettyprint source lang-bash"><code># install the module
+</blockquote>
+<p>UI virtualization is essential to your Web UI performance in case you have
+thousands of data item to render. <em>The idea is to skip rendering the off
+screen items and replace them with paddings. You need to handle the scroll
+and resize events to adjust the DOM content.</em></p>
+<p>The principle is straight forward, but the implementation is fussy. This
+<a href="http://backbonejs.org/">Backbone</a> based implementation is aiming to create a general
+purposed virtualized view with high quality and performance, so that people can
+focus more on the user experience instead of the complexity of virtualization.</p>
+<h2>Features</h2><h3>Customization</h3><p>The <code>ListView</code> is named as &quot;list view&quot;, but it's not necessarily to render a
+list. You can customize it into a <code>TABLE</code>, or a sequence of <code>DIV</code>s with the
+<code>listTemplate</code> and the <code>itemTemplate</code> options.</p>
+<p>Refer to the <a href="https://microsoft.github.io/backbone-virtualized-listview/ListView.html">document</a> for detail</p>
+<h3>Scroll to item</h3><p>You can scroll a certain item into the viewport, method <code>scrollToItem</code> is
+the helper.</p>
+<p>Refer to the <a href="https://microsoft.github.io/backbone-virtualized-listview/ListView.html#scrollToItem__anchor">document</a> for detail.</p>
+<h3>Handling data change</h3><p>When data is changed, you can update the view with the <code>reset</code> method.</p>
+<p>Refer to the <a href="https://microsoft.github.io/backbone-virtualized-listview/ListView.html#reset__anchor">document</a> for detail.</p>
+<h2>Installation</h2><pre class="prettyprint source lang-bash"><code># install the module
 npm install --save backbone-virtualized-listview
 # install the peer dependencies
-npm install --save jquery underscore backbone fast-binary-indexed-tree</code></pre><h2>Usage</h2><pre class="prettyprint source lang-javascript"><code>import _ from 'underscore';
+npm install --save jquery underscore backbone fast-binary-indexed-tree</code></pre><h2>Usage</h2><p>Refer to the <a href="https://microsoft.github.io/backbone-virtualized-listview/">document</a> for details.</p>
+<pre class="prettyprint source lang-javascript"><code>import _ from 'underscore';
 import ListView from 'backbone-virtualized-listview';
+import listTemplate from 'my-list-template.jade';
+import itemTemplate from 'my-item-template.jade';
 
 const listView = new ListView({
   el: '.container',
   items: _.map(_.range(2000), i => { text: i }),
+  listTemplate,
+  itemTemplate,
 });
-listView.render();</code></pre></article>
+listView.render();
+
+// Scroll to item
+listView.scrollToItem(100);</code></pre><h2>License</h2><p>MIT</p>
+<p>This project has adopted the <a href="https://opensource.microsoft.com/codeofconduct/">Microsoft Open Source Code of Conduct</a>.
+For more information see the <a href="https://opensource.microsoft.com/codeofconduct/faq/">Code of Conduct FAQ</a>
+or contact <a href="mailto:opencode@microsoft.com">opencode@microsoft.com</a> with any additional questions or comments.</p></article>
     </section>
 
 
@@ -140,7 +173,7 @@ listView.render();</code></pre></article>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on 2016-07-15T16:00:33+08:00
+		on 2016-07-15T16:52:44+08:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
