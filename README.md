@@ -1,29 +1,29 @@
-# backbone-virtualized-listview
+# [backbone-virtualized-listview][git-repo]
   [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 
 Backbone list view with virtualization support
 
-## Usage
+## Install
 ```bash
+# install the module
 npm install --save backbone-virtualized-listview
+# install the peer dependencies
+npm install --save jquery underscore backbone fast-binary-indexed-tree
 ```
 
-In your JavaScript code
-### As AMD
+## Usage
 ```javascript
-require(['backbone-virtualized-listview'], function (backboneVirtualizedListview) {
-  // use the backboneVirtualizedListview
+import _ from 'underscore';
+import ListView from 'backbone-virtualized-listview';
+
+const listView = new ListView({
+  el: '.container',
+  items: _.map(_.range(2000), i => { text: i }),
 });
+listView.render();
 ```
 
-### As CMD
-```javascript
-var backboneVirtualizedListview = require('backbone-virtualized-listview');
-
-// use the backboneVirtualizedListview
-```
-
-
+[git-repo]: https://github.com/Microsoft/backbone-virtualized-listview
 [npm-image]: https://badge.fury.io/js/backbone-virtualized-listview.svg
 [npm-url]: https://npmjs.org/package/backbone-virtualized-listview
 [travis-image]: https://travis-ci.org/Microsoft/backbone-virtualized-listview.svg?branch=master
@@ -32,4 +32,3 @@ var backboneVirtualizedListview = require('backbone-virtualized-listview');
 [daviddm-url]: https://david-dm.org/Microsoft/backbone-virtualized-listview
 [coveralls-image]: https://coveralls.io/repos/Microsoft/backbone-virtualized-listview/badge.svg
 [coveralls-url]: https://coveralls.io/r/Microsoft/backbone-virtualized-listview
-
