@@ -230,7 +230,7 @@ class ListView extends Backbone.View {
     this.items = items;
     this.defaultItemHeight = defaultItemHeight;
     this.itemHeights = new BinaryIndexedTree({
-      defaultFrequency: defaultItemHeight,
+      defaultFrequency: Math.max(defaultItemHeight, 1),
       maxVal: items.length,
     });
     this.invalidate();
