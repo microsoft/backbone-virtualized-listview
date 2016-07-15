@@ -95,7 +95,7 @@ describe('ListView', function () {
         const scrollTopMax = metrics.inner.height - metrics.outer.height;
         const scrollTop = metrics.scroll.y;
 
-        expect(Math.abs(scrollTop - scrollTopMax)).to.be.below(1);
+        expect(scrollTop).to.be.above(scrollTopMax - 1);
       }
 
       it('should create the ListView correctly', function () {
