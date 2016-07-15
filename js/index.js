@@ -22,12 +22,12 @@ const whileTrue = func => {
  *
  * It must contain an empty element with class name `'list-container'`, as
  * the parrent of all list items.
- * 
+ *
  * By default, it would render a single `UL`.
  *
  * @param {function} [options.itemTemplate]
  * The template of the list items.
- * 
+ *
  * Note: list items **MUST NOT** have outer margins, otherwise the layout
  * calculation will be inaccurate.
  *
@@ -262,7 +262,7 @@ class ListView extends Backbone.View {
 
   /**
    * Scroll to a certain item.
-   * @param {number} index The index of the item. 
+   * @param {number} index The index of the item.
    * @param {string|number} [position='default'] The position of the item.
    *
    * The valid positions are
