@@ -46,8 +46,8 @@ export class Viewport {
 
     this.$el.on('resize', this.onResize);
     this.$el.on('scroll', this.onScroll);
-    this.$el.on('keydown', this.onKeydown);
-    this.$el.on('keyup', this.onKeyup);
+    $(window).on('keydown', this.onKeydown);
+    $(window).on('keyup', this.onKeyup);
 
     this.scrollTo = scrollNew => {
       if (_.isNumber(scrollNew.x)) {
