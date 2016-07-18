@@ -29,8 +29,25 @@ export class Viewport {
       this.trigger('change');
     };
 
+    let keyCode = null;
+    let timestamp = performance.now();
+    this.onKeydown = event => {
+      // Consolidate the keydown events for the same key in 0.2 seconds
+      if (keyCode !== event.keyCode || performance.now() > timestamp + 200) {
+        keyCode = event.keyCode;
+        timestamp = performance.now();
+        this.trigger('keypress', keyCode);
+      }
+    };
+
+    this.onKeyup = event => {
+      keyCode = null;
+    };
+
     this.$el.on('resize', this.onResize);
     this.$el.on('scroll', this.onScroll);
+    this.$el.on('keydown', this.onKeydown);
+    this.$el.on('keyup', this.onKeyup);
 
     this.scrollTo = scrollNew => {
       if (_.isNumber(scrollNew.x)) {
@@ -65,21 +82,24 @@ export class WindowViewport extends Viewport {
     inner.right = inner.left + inner.width;
     inner.bottom = inner.top + inner.height;
 
-    return {
-      inner,
-      outer: {
-        top: 0,
-        bottom: window.innerHeight,
-        left: 0,
-        right: window.innerWidth,
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      scroll: {
-        x: window.scrollX,
-        y: window.scrollY,
-      },
+    const outer = {
+      top: 0,
+      bottom: window.innerHeight,
+      left: 0,
+      right: window.innerWidth,
+      width: window.innerWidth,
+      height: window.innerHeight,
     };
+
+    const scroll = {
+      x: window.scrollX,
+      y: window.scrollY,
+    };
+
+    scroll.ratioX = scroll.x > 0 ? scroll.x / (inner.width - outer.width) : 0;
+    scroll.ratioY = scroll.y > 0 ? scroll.y / (inner.height - outer.height) : 0;
+
+    return { inner, outer, scroll };
   }
 }
 
@@ -105,6 +125,9 @@ export class ElementViewport extends Viewport {
     };
     inner.right = inner.left + inner.width;
     inner.bottom = inner.top + inner.height;
+
+    scroll.ratioX = scroll.x > 0 ? scroll.x / (inner.width - outer.width) : 0;
+    scroll.ratioY = scroll.y > 0 ? scroll.y / (inner.height - outer.height) : 0;
 
     return { outer, inner, scroll };
   }

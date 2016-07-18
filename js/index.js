@@ -79,7 +79,7 @@ class ListView extends Backbone.View {
     this.anchor = null;
     this.invalidated = false;
 
-    // Events
+    // Event handling
     this._scheduleRedraw = (() => {
       let requestId = null;
 
@@ -93,7 +93,29 @@ class ListView extends Backbone.View {
       };
     })();
 
-    this.viewport.on('change', this._scheduleRedraw);
+    let blockUntil = 0;
+
+    const onViewportChange = () => {
+      if (performance.now() > blockUntil) {
+        this._scheduleRedraw();
+      } else {
+        // If the scroll events are blocked, we shouldn't just swallow them.
+        // Wait for 0.1 second and give another try.
+        window.setTimeout(onViewportChange, 100);
+      }
+    }
+
+    this.viewport.on('change', onViewportChange);
+
+    //
+    // On keypress, we want to block the scroll events for 0.2 second to wait
+    // for the animation to complete. Otherwise, the scroll would change the
+    // geometry metrics and break the animation. The worst thing we may get is,
+    // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
+    //
+    this.viewport.on('keypress', () => {
+      blockUntil = performance.now() + 200;
+    });
   }
 
   /**
@@ -113,19 +135,13 @@ class ListView extends Backbone.View {
     const visibleTop = metricsViewport.outer.top;
     const visibleBot = metricsViewport.outer.bottom;
     const rectContainer = $container.get(0).getBoundingClientRect();
-
-    if (!anchor) {
-      anchor = {
-        index: indexFirst,
-        top: rectContainer.top + itemHeights.read(indexFirst),
-      };
-    }
+    const scrollRatio = metricsViewport.scroll.ratioY;
 
     let renderTop = false;
     let renderBot = false;
 
     whileTrue(() => {
-      const listTop = anchor.top - itemHeights.read(anchor.index);
+      const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
       const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
       const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
       const renderFirst = Math.max(targetFirst - 10, 0);
@@ -141,6 +157,15 @@ class ListView extends Backbone.View {
         if (targetFirst !== targetLast && items.length > 0) {
           renderMore = true;
         }
+        if (!anchor) {
+          const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
+          const top = rectContainer.top + itemHeights.read(index);
+          anchor = { index, top };
+        }
+      } else if (!anchor) {
+        const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
+        const top = rectContainer.top + itemHeights.read(index);
+        anchor = { index, top };
       }
 
       // Render top
@@ -191,7 +216,7 @@ class ListView extends Backbone.View {
     const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
     const scrollTop = Math.round(visibleTop - innerTop);
 
-    if (Math.abs(scrollTop - metricsViewport.scroll.y) >= 1) {
+    if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
       this.viewport.scrollTo({ y: scrollTop });
       this._scheduleRedraw();
     }
