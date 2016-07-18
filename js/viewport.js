@@ -46,8 +46,8 @@ export class Viewport {
 
     this.$el.on('resize', this.onResize);
     this.$el.on('scroll', this.onScroll);
-    $(window).on('keydown', this.onKeydown);
-    $(window).on('keyup', this.onKeyup);
+    $(document).on('keydown', this.onKeydown);
+    $(document).on('keyup', this.onKeyup);
 
     this.scrollTo = scrollNew => {
       if (_.isNumber(scrollNew.x)) {
@@ -62,6 +62,8 @@ export class Viewport {
   remove() {
     this.$el.off('resize', this.onResize);
     this.$el.off('scroll', this.onScroll);
+    $(document).off('keydown', this.onKeydown);
+    $(document).off('keyup', this.onKeyup);
   }
 
   getMetrics() {
