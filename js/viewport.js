@@ -40,7 +40,7 @@ export class Viewport {
       }
     };
 
-    this.onKeyup = event => {
+    this.onKeyup = () => {
       keyCode = null;
     };
 

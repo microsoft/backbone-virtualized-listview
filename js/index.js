@@ -103,7 +103,7 @@ class ListView extends Backbone.View {
         // Wait for 0.1 second and give another try.
         window.setTimeout(onViewportChange, 100);
       }
-    }
+    };
 
     this.viewport.on('change', onViewportChange);
 
