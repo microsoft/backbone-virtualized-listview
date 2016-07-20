@@ -87,7 +87,7 @@ describe('ListView', function () {
       function checkScrolledToTop() {
         const scrollTop = listView.viewport.getMetrics().scroll.y;
 
-        expect(Math.abs(scrollTop)).to.be.below(1);
+        expect(Math.abs(scrollTop)).to.be.at.most(1);
       }
 
       function checkScrolledToBottom() {
@@ -95,7 +95,7 @@ describe('ListView', function () {
         const scrollTopMax = metrics.inner.height - metrics.outer.height;
         const scrollTop = metrics.scroll.y;
 
-        expect(scrollTop).to.be.above(scrollTopMax - 1);
+        expect(scrollTop).to.be.at.least(scrollTopMax - 1);
       }
 
       it('should create the ListView correctly', function () {

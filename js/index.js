@@ -17,16 +17,16 @@ const whileTrue = func => {
  * @param {Object} options
  * The constructor options.
  *
- * @param {function} [options.listTemplate]
- * The template of the list view.
+ * @param {ListView~cbListTemplate} [options.listTemplate]
+ * The template to render the skeleton of the list view.
  *
  * It must contain an empty element with class name `'list-container'`, as
  * the parrent of all list items.
  *
  * By default, it would render a single `UL`.
  *
- * @param {function} [options.itemTemplate]
- * The template of the list items.
+ * @param {ListView~cbItemTemplate} [options.itemTemplate]
+ * The template to render a list item.
  *
  * Note: list items **MUST NOT** have outer margins, otherwise the layout
  * calculation will be inaccurate.
@@ -47,7 +47,14 @@ const whileTrue = func => {
  *
  * If it's omitted, the `window` will be used as the viewport.
  *
+ * @param {ListView~cbApplyPaddings} [options.applyPaddings]
+ * The callback to apply top and bottom placeholder paddings.
+ *
+ * If it's omitted, it will set the top and bottom padding of the
+ * `.list-container` element.
+ *
  */
+
 class ListView extends Backbone.View {
 
   /**
@@ -61,12 +68,14 @@ class ListView extends Backbone.View {
     items = [],
     defaultItemHeight = 20,
     viewport = null,
+    applyPaddings = null,
   } = {}) {
     this.listTemplate = listTemplate;
     this.itemTemplate = itemTemplate;
     this.events = events;
     this.items = items;
     this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
+    this.applyPaddings = applyPaddings || (padding => this.$container.css(padding));
 
     // States
     this.indexFirst = 0;
@@ -170,6 +179,11 @@ class ListView extends Backbone.View {
 
       // Render top
       if (targetFirst < indexFirst) {
+        /**
+         * The template to render a list item.
+         * @callback ListView~cbItemTemplate
+         * @param {Object} item The model object of the item
+         */
         $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
         $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
           itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
@@ -205,7 +219,14 @@ class ListView extends Backbone.View {
 
     // Update the padding
     if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
-      this.$container.css({
+      /**
+       * Callback to set the top and bottom placeholder paddings.
+       * @callback ListView~cbApplyPaddings
+       * @param {Object} style The padding styles.
+       * @param {number} style.paddingTop The top padding.
+       * @param {number} style.paddingBottom The bottom padding.
+       */
+      this.applyPaddings({
         paddingTop: itemHeights.read(indexFirst),
         paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
       });
@@ -350,9 +371,16 @@ class ListView extends Backbone.View {
    * Render the list view.
    */
   render() {
+    /**
+     * The template to render the skeleton of the list view.
+     * @callback ListView~cbListTemplate
+     */
     this.$el.html(this.listTemplate());
     this.$container = this.$('.list-container');
-    this.$container.css({ paddingBottom: this.itemHeights.read(this.items.length) });
+    this.applyPaddings({
+      paddingTop: 0,
+      paddingBottom: this.itemHeights.read(this.items.length),
+    });
     this._scheduleRedraw();
     return this;
   }
