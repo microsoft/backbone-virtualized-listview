@@ -25,6 +25,9 @@ const INVALIDATION_ALL = 0xf;
  * @param {Object} options
  * The constructor options.
  *
+ * @param {Object} options.model
+ * The model object to render the skeleton of the list view.
+ *
  * @param {ListView~cbListTemplate} [options.listTemplate]
  * The template to render the skeleton of the list view.
  *
@@ -221,11 +224,6 @@ class ListView extends Backbone.View {
 
       // Render top
       if (targetFirst < indexFirst) {
-        /**
-         * The template to render a list item.
-         * @callback ListView~cbItemTemplate
-         * @param {Object} item The model object of the item
-         */
         $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
         $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
           itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
@@ -304,6 +302,76 @@ class ListView extends Backbone.View {
     }
   }
 
+  /**
+   * The callback to apply paddings.
+   * @type {ListView~cbApplyPaddings}
+   */
+  get applyPaddings() {
+    return this.options.applyPaddings;
+  }
+
+  /**
+   * Get the item at certain index.
+   * @param {number} index The index of the item.
+   * @return {Object}
+   */
+  itemAt(index) {
+    return this.options.items[index];
+  }
+
+  /**
+   * The total count of the items.
+   * @type {number}
+   */
+  get length() {
+    return this.options.items.length;
+  }
+
+  /**
+   * The template to render the skeleton of the list view.
+   * @callback ListView~cbListTemplate
+   * @param {Object} model The model object of the list view.
+   */
+
+  /**
+   * The template to render the skeleton of the list view.
+   * @type {ListView~cbListTemplate}
+   */
+  get listTemplate() {
+    return this.options.listTemplate;
+  }
+
+  /**
+   * The template to render a list item.
+   * @callback ListView~cbItemTemplate
+   * @param {Object} item The model object of the item
+   */
+
+  /**
+   * The template to render a list item.
+   * @type {ListView~cbItemTemplate}
+   */
+  get itemTemplate() {
+    return this.options.itemTemplate;
+  }
+
+  /**
+   * The default list item height.
+   * @type {number}
+   */
+  get defaultItemHeight() {
+    return this.options.defaultItemHeight;
+  }
+
+  /**
+   * @external BinaryIndexedTree
+   * @see {@link https://microsoft.github.io/fast-binary-indexed-tree-js/BinaryIndexedTree.html}
+   */
+
+  /**
+   * The BinaryIndexedTree to get the heights and accumulated heights of items.
+   * @type {external:BinaryIndexedTree}
+   */
   get itemHeights() {
     if (!this._itemHeights) {
       const { defaultItemHeight, items } = this.options;
@@ -421,10 +489,6 @@ class ListView extends Backbone.View {
    * Render the list view.
    */
   render() {
-    /**
-     * The template to render the skeleton of the list view.
-     * @callback ListView~cbListTemplate
-     */
     this._invalidate(INVALIDATION_ALL);
     return this;
   }
