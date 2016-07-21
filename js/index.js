@@ -12,12 +12,12 @@ const whileTrue = func => {
   while (func());
 };
 
-const INVALIDATE_NONE = 0;
-const INVALIDATE_ITEMS = 0x1;
-const INVALIDATE_METRICS = 0x2;
-const INVALIDATE_EVENTS = 0x4;
-const INVALIDATE_LIST = 0x8;
-const INVALIDATE_ALL = 0xf;
+const INVALIDATION_NONE = 0;
+const INVALIDATION_ITEMS = 0x1;
+const INVALIDATION_METRICS = 0x2;
+const INVALIDATION_EVENTS = 0x4;
+const INVALIDATION_LIST = 0x8;
+const INVALIDATION_ALL = 0xf;
 
 /**
  * The virtualized list view class.
@@ -97,9 +97,8 @@ class ListView extends Backbone.View {
     // States
     this.indexFirst = 0;
     this.indexLast = 0;
-
     this.anchor = null;
-    this.invalidated = INVALIDATE_NONE;
+    this.invalidation = INVALIDATION_NONE;
 
     // Event handling
     this._scheduleRedraw = (() => {
@@ -151,13 +150,13 @@ class ListView extends Backbone.View {
   _processInvalidation() {
     const { applyPaddings, items, events, listTemplate, model } = this.options;
 
-    if (this.invalidated & INVALIDATE_EVENTS) {
+    if (this.invalidation & INVALIDATION_EVENTS) {
       this.undelegateEvents();
     }
-    if (this.invalidated & INVALIDATE_METRICS) {
+    if (this.invalidation & INVALIDATION_METRICS) {
       this._itemHeights = null;
     }
-    if (this.invalidated & INVALIDATE_LIST) {
+    if (this.invalidation & INVALIDATION_LIST) {
       this.$el.html(listTemplate(model));
       this.$container = this.$('.list-container');
       applyPaddings({
@@ -166,12 +165,12 @@ class ListView extends Backbone.View {
       });
       this.indexFirst = this.indexLast = 0;
     }
-    if (this.invalidated & INVALIDATE_EVENTS) {
+    if (this.invalidation & INVALIDATION_EVENTS) {
       this.delegateEvents(events);
     }
-    const invalidateItems = this.invalidated & INVALIDATE_ITEMS;
+    const invalidateItems = this.invalidation & INVALIDATION_ITEMS;
 
-    this.invalidated = INVALIDATE_NONE;
+    this.invalidation = INVALIDATION_NONE;
     return invalidateItems;
   }
 
@@ -333,20 +332,20 @@ class ListView extends Backbone.View {
     _.extend(this.options, options);
 
     if (_.some(['model', 'listTemplate', 'applyPaddings'], isSet)) {
-      this._invalidate(INVALIDATE_ALL);
+      this._invalidate(INVALIDATION_ALL);
     } else {
       if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
         this._itemHeights = null;
-        this._invalidate(INVALIDATE_ITEMS);
+        this._invalidate(INVALIDATION_ITEMS);
       }
       if (isSet('events')) {
-        this._invalidate(INVALIDATE_EVENTS);
+        this._invalidate(INVALIDATION_EVENTS);
       }
     }
   }
 
-  _invalidate(invalidated) {
-    this.invalidated |= invalidated;
+  _invalidate(invalidation) {
+    this.invalidation |= invalidation;
     this._scheduleRedraw();
   }
 
@@ -354,7 +353,7 @@ class ListView extends Backbone.View {
    * Invalidate the already rendered items and schedule another redraw.
    */
   invalidate() {
-    this._invalidate(INVALIDATE_ITEMS);
+    this._invalidate(INVALIDATION_ITEMS);
   }
 
   /**
@@ -426,7 +425,7 @@ class ListView extends Backbone.View {
      * The template to render the skeleton of the list view.
      * @callback ListView~cbListTemplate
      */
-    this._invalidate(INVALIDATE_ALL);
+    this._invalidate(INVALIDATION_ALL);
     return this;
   }
 
