@@ -52,7 +52,7 @@ describe('ListView', function () {
         if (listView.indexFirst > 0) {
           expect(rectFirst.top).to.be.at.most(top);
         }
-        if (listView.indexLast < listView.items.length) {
+        if (listView.indexLast < listView.options.items.length) {
           expect(rectLast.bottom).to.be.at.least(bottom);
         }
 
@@ -147,7 +147,7 @@ describe('ListView', function () {
           checkViewportFillup();
         }
 
-        listView.scrollToItem(listView.items.length - 1, 'top');
+        listView.scrollToItem(listView.options.items.length - 1, 'top');
         await sleep(redrawInterval);
 
         checkScrolledToBottom();
@@ -185,7 +185,7 @@ describe('ListView', function () {
         checkScrolledToTop();
         checkViewportFillup();
 
-        listView.scrollToItem(listView.items.length - 1, 'middle');
+        listView.scrollToItem(listView.options.items.length - 1, 'middle');
         await sleep(redrawInterval);
 
         checkScrolledToBottom();

@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import $ from 'jquery';
 import Backbone from 'backbone';
 import BinaryIndexedTree from 'fast-binary-indexed-tree';
@@ -62,28 +63,33 @@ class ListView extends Backbone.View {
    * @see ListView
    */
   initialize({
+    model = {},
     listTemplate = defaultListTemplate,
-    itemTemplate = defaultItemTemplate,
+    applyPaddings = style => this.$container.css(style),
     events = {},
+
     items = [],
+    itemTemplate = defaultItemTemplate,
     defaultItemHeight = 20,
+
     viewport = null,
-    applyPaddings = null,
   } = {}) {
-    this.listTemplate = listTemplate;
-    this.itemTemplate = itemTemplate;
-    this.events = events;
-    this.items = items;
+    this.options = {
+      model,
+      listTemplate,
+      applyPaddings,
+      events,
+
+      items,
+      itemTemplate,
+      defaultItemHeight,
+    };
+
     this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
-    this.applyPaddings = applyPaddings || (padding => this.$container.css(padding));
 
     // States
     this.indexFirst = 0;
     this.indexLast = 0;
-    this.itemHeights = new BinaryIndexedTree({
-      defaultFrequency: Math.max(defaultItemHeight, 1),
-      maxVal: items.length,
-    });
 
     this.anchor = null;
     this.invalidated = false;
@@ -137,7 +143,8 @@ class ListView extends Backbone.View {
 
   // Private API, redraw immediately
   _redraw() {
-    const { viewport, itemHeights, $container, items, itemTemplate } = this;
+    const { applyPaddings, items, itemTemplate } = this.options;
+    const { viewport, itemHeights, $container } = this;
     let { indexFirst, indexLast, anchor, invalidated } = this;
 
     const metricsViewport = viewport.getMetrics();
@@ -226,7 +233,7 @@ class ListView extends Backbone.View {
        * @param {number} style.paddingTop The top padding.
        * @param {number} style.paddingBottom The bottom padding.
        */
-      this.applyPaddings({
+      applyPaddings({
         paddingTop: itemHeights.read(indexFirst),
         paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
       });
@@ -263,23 +270,42 @@ class ListView extends Backbone.View {
     }
   }
 
+  get itemHeights() {
+    if (!this._itemHeights) {
+      const { defaultItemHeight, items } = this.options;
+      this._itemHeights = new BinaryIndexedTree({
+        defaultFrequency: Math.max(defaultItemHeight, 1),
+        maxVal: items.length,
+      });
+    }
+    return this._itemHeights;
+  }
+
+  rebindEvents() {
+    this.undelegateEvents();
+    this.delegateEvents(_.get(this.options, 'events', {}));
+  }
+
   /**
    * Reset the items and defaultItemHeight.
    * @param {Object} options
    * @param {Object[]} [options.items] The new data items.
    * @param {number} [options.defaultItemHeight] The new estimated item height.
    */
-  reset({
-    items = this.items,
-    defaultItemHeight = this.itemHeights.defaultFrequency,
-  } = {}) {
-    this.items = items;
-    this.defaultItemHeight = defaultItemHeight;
-    this.itemHeights = new BinaryIndexedTree({
-      defaultFrequency: Math.max(defaultItemHeight, 1),
-      maxVal: items.length,
-    });
-    this.invalidate();
+  reset(options = {}) {
+    const isSet = key => _.has(options, key);
+    _.extend(this.options, options);
+    if (_.some(['model', 'listTemplate', 'applyPaddings'], isSet)) {
+      this.render();
+    } else {
+      if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
+        this._itemHeights = null;
+        this.invalidate();
+      }
+      if (isSet('events')) {
+        this.rebindEvents();
+      }
+    }
   }
 
   /**
@@ -375,13 +401,16 @@ class ListView extends Backbone.View {
      * The template to render the skeleton of the list view.
      * @callback ListView~cbListTemplate
      */
-    this.$el.html(this.listTemplate());
+    const { listTemplate, applyPaddings, items, events } = this.options;
+    this.undelegateEvents();
+    this.$el.html(listTemplate());
     this.$container = this.$('.list-container');
-    this.applyPaddings({
+    applyPaddings({
       paddingTop: 0,
-      paddingBottom: this.itemHeights.read(this.items.length),
+      paddingBottom: this.itemHeights.read(items.length),
     });
     this._scheduleRedraw();
+    this.delegateEvents(events);
     return this;
   }
 
