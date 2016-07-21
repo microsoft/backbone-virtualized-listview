@@ -12,6 +12,13 @@ const whileTrue = func => {
   while (func());
 };
 
+const INVALIDATE_NONE = 0;
+const INVALIDATE_ITEMS = 0x1;
+const INVALIDATE_METRICS = 0x2;
+const INVALIDATE_EVENTS = 0x4;
+const INVALIDATE_LIST = 0x8;
+const INVALIDATE_ALL = 0xf;
+
 /**
  * The virtualized list view class.
  *
@@ -92,7 +99,7 @@ class ListView extends Backbone.View {
     this.indexLast = 0;
 
     this.anchor = null;
-    this.invalidated = false;
+    this.invalidated = INVALIDATE_NONE;
 
     // Event handling
     this._scheduleRedraw = (() => {
@@ -141,11 +148,40 @@ class ListView extends Backbone.View {
     super.remove();
   }
 
+  _processInvalidation() {
+    const { applyPaddings, items, events, listTemplate, model } = this.options;
+
+    if (this.invalidated & INVALIDATE_EVENTS) {
+      this.undelegateEvents();
+    }
+    if (this.invalidated & INVALIDATE_METRICS) {
+      this._itemHeights = null;
+    }
+    if (this.invalidated & INVALIDATE_LIST) {
+      this.$el.html(listTemplate(model));
+      this.$container = this.$('.list-container');
+      applyPaddings({
+        paddingTop: 0,
+        paddingBottom: this.itemHeights.read(items.length),
+      });
+      this.indexFirst = this.indexLast = 0;
+    }
+    if (this.invalidated & INVALIDATE_EVENTS) {
+      this.delegateEvents(events);
+    }
+    const invalidateItems = this.invalidated & INVALIDATE_ITEMS;
+
+    this.invalidated = INVALIDATE_NONE;
+    return invalidateItems;
+  }
+
   // Private API, redraw immediately
   _redraw() {
+    let invalidateItems = this._processInvalidation();
+
     const { applyPaddings, items, itemTemplate } = this.options;
     const { viewport, itemHeights, $container } = this;
-    let { indexFirst, indexLast, anchor, invalidated } = this;
+    let { indexFirst, indexLast, anchor } = this;
 
     const metricsViewport = viewport.getMetrics();
     const visibleTop = metricsViewport.outer.top;
@@ -166,10 +202,9 @@ class ListView extends Backbone.View {
       let renderMore = false;
 
       // Clean up
-      if (targetFirst >= indexLast || targetLast <= indexFirst || invalidated) {
+      if (targetFirst >= indexLast || targetLast <= indexFirst || invalidateItems) {
         $container.empty();
         indexFirst = indexLast = targetFirst;
-        invalidated = false;
         if (targetFirst !== targetLast && items.length > 0) {
           renderMore = true;
         }
@@ -178,6 +213,7 @@ class ListView extends Backbone.View {
           const top = rectContainer.top + itemHeights.read(index);
           anchor = { index, top };
         }
+        invalidateItems = false;
       } else if (!anchor) {
         const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
         const top = rectContainer.top + itemHeights.read(index);
@@ -252,7 +288,6 @@ class ListView extends Backbone.View {
     // Write back the render state
     this.indexFirst = indexFirst;
     this.indexLast = indexLast;
-    this.invalidated = false;
 
     // Do a second scroll for a middle anchor after the item is rendered
     if (anchor.isMiddle) {
@@ -294,16 +329,18 @@ class ListView extends Backbone.View {
    */
   reset(options = {}) {
     const isSet = key => _.has(options, key);
+
     _.extend(this.options, options);
+
     if (_.some(['model', 'listTemplate', 'applyPaddings'], isSet)) {
-      this.render();
+      this._invalidate(INVALIDATE_ALL);
     } else {
       if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
         this._itemHeights = null;
-        this.invalidate();
+        this._invalidate(INVALIDATE_ITEMS);
       }
       if (isSet('events')) {
-        this.rebindEvents();
+        this._invalidate(INVALIDATE_EVENTS);
       }
     }
   }
@@ -324,12 +361,16 @@ class ListView extends Backbone.View {
     this.reset({ defaultItemHeight });
   }
 
+  _invalidate(invalidated) {
+    this.invalidated |= invalidated;
+    this._scheduleRedraw();
+  }
+
   /**
    * Invalidate the already rendered items and schedule another redraw.
    */
   invalidate() {
-    this.invalidated = true;
-    this._scheduleRedraw();
+    this._invalidate(INVALIDATE_ITEMS);
   }
 
   /**
@@ -401,16 +442,7 @@ class ListView extends Backbone.View {
      * The template to render the skeleton of the list view.
      * @callback ListView~cbListTemplate
      */
-    const { listTemplate, applyPaddings, items, events } = this.options;
-    this.undelegateEvents();
-    this.$el.html(listTemplate());
-    this.$container = this.$('.list-container');
-    applyPaddings({
-      paddingTop: 0,
-      paddingBottom: this.itemHeights.read(items.length),
-    });
-    this._scheduleRedraw();
-    this.delegateEvents(events);
+    this._invalidate(INVALIDATE_ALL);
     return this;
   }
 
