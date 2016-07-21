@@ -252,13 +252,15 @@ describe('ListView', function () {
 
       it('should be able to reset the items and defaultItemHeight', doAsync(async () => {
         const height = viewportMetrics().inner.height;
-        listView.setDefaultItemHeight(22);
+        listView.reset({ defaultItemHeight: 22 });
         await sleep(redrawInterval);
         expect(viewportMetrics().inner.height).to.be.above(height);
 
         const $ul = $('.test-container > ul');
         const text = 'hello world!';
-        listView.setItems([{ text }]);
+        listView.reset({
+          items: [{ text }],
+        });
         await sleep(redrawInterval);
 
         expect($ul.children().length).to.equal(1);

@@ -345,22 +345,6 @@ class ListView extends Backbone.View {
     }
   }
 
-  /**
-   * Reset the items. Short-cut for `listView.reset({ items })`.
-   * @param {Object[]} items The new data items.
-   */
-  setItems(items) {
-    this.reset({ items });
-  }
-
-  /**
-   * Reset the estimated item height.
-   * @param {number} defaultItemHeight The new estimated item height.
-   */
-  setDefaultItemHeight(defaultItemHeight) {
-    this.reset({ defaultItemHeight });
-  }
-
   _invalidate(invalidated) {
     this.invalidated |= invalidated;
     this._scheduleRedraw();
