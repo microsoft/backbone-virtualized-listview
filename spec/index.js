@@ -21,6 +21,63 @@ describe('ListView', function () {
     expect(ListView.prototype).is.instanceof(Backbone.View);
   });
 
+  describe('Properties', function () {
+    const count = 20000;
+    let listView = null;
+
+    const model = {}
+    const applyPaddings = style => listView.$container.css(style);
+    const listTemplate = () => '<ul class="list-container"></ul>';
+    const itemTemplate = item => `<li>${item.text}</li>`;
+    const defaultItemHeight = 18;
+
+    beforeEach(doAsync(async () => {
+      listView = new ListView({
+        el: '.test-container',
+        items: _.map(_.range(count), i => ({ text: i })),
+        applyPaddings,
+        listTemplate,
+        model,
+        itemTemplate,
+        defaultItemHeight,
+      }).render();
+      await sleep(redrawInterval);
+    }));
+
+    afterEach(doAsync(async () => {
+      listView.remove();
+      await sleep(redrawInterval);
+    }));
+
+    it('should expose the applyPaddings callback', function () {
+      expect(listView.applyPaddings).to.equal(applyPaddings);
+    });
+
+    it('should expose the lenght of the list', function () {
+      expect(listView.length).to.equal(count);
+    });
+
+    it('should be able to get the items', function () {
+      expect(listView.itemAt(10)).to.deep.equal({ text: 10 });
+    });
+
+    it('should expose the listTemplate', function () {
+      expect(listView.listTemplate).to.equal(listTemplate);
+    });
+
+    it('should expose the model', function () {
+      expect(listView.model).to.equal(model);
+    });
+
+    it('should expose the itemTemplate', function () {
+      expect(listView.itemTemplate).to.equal(itemTemplate);
+    });
+
+    it('should expose the defaultItemHeight', function () {
+      expect(listView.defaultItemHeight).to.equal(defaultItemHeight);
+    });
+  });
+
   function getTestCases(viewFactory) {
     return function () {
       let listView = null;
