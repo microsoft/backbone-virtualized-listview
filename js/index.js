@@ -185,14 +185,14 @@ class ListView extends Backbone.View {
   // Private API, redraw immediately
   _redraw() {
     let invalidateItems = this._processInvalidation();
+    const { applyPaddings, items, itemTemplate } = this.options;
+    const { viewport, itemHeights, $container } = this;
+    let { indexFirst, indexLast, anchor } = this;
 
     this.trigger('willRedraw');
 
     whileTrue(() => {
       let isCompleted = true;
-      const { applyPaddings, items, itemTemplate } = this.options;
-      const { viewport, itemHeights, $container } = this;
-      let { indexFirst, indexLast, anchor } = this;
 
       const metricsViewport = viewport.getMetrics();
       const visibleTop = metricsViewport.outer.top;
@@ -280,10 +280,6 @@ class ListView extends Backbone.View {
       const scrollTop = Math.round(visibleTop - innerTop);
       let anchorNew = null;
 
-      // Write back the render state
-      this.indexFirst = indexFirst;
-      this.indexLast = indexLast;
-
       // Do a second scroll for a middle anchor after the item is rendered
       if (anchor.isMiddle) {
         const index = anchor.index;
@@ -304,17 +300,21 @@ class ListView extends Backbone.View {
         isCompleted = false;
       }
 
-
       if (isCompleted) {
         if (anchor && _.isFunction(anchor.callback)) {
           anchor.callback();
         }
-        this.anchor = null;
+        anchor = null;
       } else {
-        this.anchor = anchorNew;
+        anchor = anchorNew;
       }
       return !isCompleted;
     });
+
+    // Write back the render state
+    this.indexFirst = indexFirst;
+    this.indexLast = indexLast;
+    this.anchor = anchor;
 
     this.trigger('didRedraw');
   }
