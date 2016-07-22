@@ -1,8 +1,11 @@
+import _ from 'underscore';
 import $ from 'jquery';
 import chai from 'chai';
-import { Viewport } from '../js/viewport.js';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+
+import { Viewport } from '../js/viewport.js';
+import { doAsync, sleep } from './test-util.js';
 
 chai.use(sinonChai);
 
@@ -47,6 +50,55 @@ describe('Viewport', function () {
       viewport.on('resize', spy);
       viewport.onResize();
       expect(spy).to.be.calledOnce;
+    });
+  });
+
+  describe('key event handlers', function () {
+    it('should trigger key press on keydown', function () {
+      let spy = sinon.spy();
+
+      viewport.on('keypress', spy);
+      viewport.onKeydown({ keyCode: 36 });
+      expect(spy).to.be.calledOnce;
+    });
+
+    it('should consolidate the dead keys', function () {
+      let spy = sinon.spy();
+
+      viewport.on('keypress', spy);
+      _.times(10, () => viewport.onKeydown({ keyCode: 36 }));
+      expect(spy).to.be.calledOnce;
+    });
+
+    it('should respect the keyup when detecting dead keys', function () {
+      let spy = sinon.spy();
+
+      viewport.on('keypress', spy);
+      _.times(10, () => {
+        viewport.onKeydown({ keyCode: 36 });
+        viewport.onKeyup();
+      });
+      expect(spy).to.have.callCount(10);
+    });
+
+    it('should release the dead key after a 0.2 second interval', doAsync(async () => {
+      let spy = sinon.spy();
+
+      viewport.on('keypress', spy);
+      viewport.onKeydown({ keyCode: 36 });
+
+      await sleep(250);
+
+      viewport.onKeydown({ keyCode: 36 });
+      expect(spy).to.be.calledTwice;
+    }));
+
+    it('should treat different keys as separated events', function () {
+      let spy = sinon.spy();
+
+      viewport.on('keypress', spy);
+      _.each(_.range(10), i => viewport.onKeydown({ keyCode: 36 + i }));
+      expect(spy).to.have.callCount(10);
     });
   });
 
