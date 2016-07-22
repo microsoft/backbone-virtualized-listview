@@ -22,61 +22,55 @@ const INVALIDATION_ALL = 0xf;
 /**
  * The virtualized list view class.
  *
- * @param {Object} options
- * The constructor options.
+ * In addition to ordinary Backbone View options, the constructor also takes
  *
+ * __model__: the model object to render the skeleton of the list view.
+ *
+ *  * Can be reset by {@link ListView#reset}
+ *
+ * __listTemplate__: the template to render the skeleton of the list view.
+ *
+ *  * By default, it would render a single `UL`.
+ *  * Can be reset by {@link ListView#reset}
+ *  * __Note__: It must contain an empty element with class name
+ *    `'list-container'`, as the parrent of all list items.
+ *
+ * __applyPaddings__: the callback to apply top and bottom placeholder paddings.
+ *
+ *  * If it's omitted, it will set the top and bottom padding of the
+ *    `.list-container` element.
+ *  * Can be reset by {@link ListView#reset}
+ *
+ * __items__: the model objects of the list items.
+ *
+ *  * Can be reset by {@link ListView#reset}
+ *
+ * __itemTemplate__: the template to render a list item.
+ *
+ *  * By default, it would render a single `LI` filled with `item.text`.
+ *  * Can be reset by {@link ListView#reset}
+ *  * __Note__: list items __MUST NOT__ have outer margins, otherwise the layout
+ *    calculation will be inaccurate.
+ *
+ * __defaultItemHeight__: the estimated height of a single item.
+ *
+ *  * It's not necessary to be accurate. But the accurater it is, the less the
+ *    scroll bar is adjusted overtime.
+ *  * Can be reset by {@link ListView#reset}
+ *
+ * __viewport__: the CSS selector to locate the scrollable viewport.
+ *
+ *  * If it's omitted, the `window` will be used as the viewport.
+ *  * Cannot be reset by ListView#reset.
+ *
+ * @param {Object} options The constructor options.
  * @param {Object} options.model
- * The model object to render the skeleton of the list view.
- *
- * Can be reset by {@link ListView#reset}
- *
  * @param {ListView~cbListTemplate} [options.listTemplate]
- * The template to render the skeleton of the list view.
- *
- * Can be reset by {@link ListView#reset}
- *
- * It must contain an empty element with class name `'list-container'`, as
- * the parrent of all list items.
- *
- * By default, it would render a single `UL`.
- *
  * @param {ListView~cbApplyPaddings} [options.applyPaddings]
- * The callback to apply top and bottom placeholder paddings.
- *
- * Can be reset by {@link ListView#reset}
- *
- * If it's omitted, it will set the top and bottom padding of the
- * `.list-container` element.
- *
  * @param {Object[]} [options.items=[]]
- * The list data items.
- *
- * Can be reset by {@link ListView#reset}
- *
  * @param {ListView~cbItemTemplate} [options.itemTemplate]
- * The template to render a list item.
- *
- * Can be reset by {@link ListView#reset}
- *
- * Note: list items **MUST NOT** have outer margins, otherwise the layout
- * calculation will be inaccurate.
- *
- * By default, it would render a single `LI` filled with `item.text`.
- *
  * @param {number} [options.defaultItemHeight=20]
- * The estimated height of a single item.
- *
- * Can be reset by {@link ListView#reset}
- *
- * It's not necessary to be accurate. But the accurater it is, the less
- * the scroll bar is adjusted overtime.
- *
  * @param {string} [options.viewport]
- * The CSS selector to locate the scrollable viewport.
- *
- * Cannot be reset by ListView#reset.
- *
- * If it's omitted, the `window` will be used as the viewport.
  *
  */
 
