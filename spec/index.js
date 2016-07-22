@@ -6,6 +6,7 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import ListView from '../js/index.js';
 import template from './test-container.jade';
+import testListTemplate from './test-list.jade';
 import { doAsync, sleep } from './test-util.js';
 
 chai.use(sinonChai);
@@ -31,9 +32,12 @@ describe('ListView', function () {
     const count = 20000;
     let listView = null;
 
-    const model = {};
-    const applyPaddings = style => listView.$container.css(style);
-    const listTemplate = () => '<ul class="list-container"></ul>';
+    const model = { title: 'Test Properties' };
+    const applyPaddings = ({ paddingTop, paddingBottom }) => {
+      listView.$topFiller.height(paddingTop);
+      listView.$bottomFiller.height(paddingBottom);
+    };
+    const listTemplate = testListTemplate;
     const itemTemplate = item => `<li>${item.text}</li>`;
     const defaultItemHeight = 18;
 
@@ -375,7 +379,7 @@ describe('ListView', function () {
       it('should be able to reset the model and listTemplate', doAsync(async () => {
         const title = 'New Template';
         const model = { title };
-        const listTemplate = ({ title }) => `<h2>${title}</h2><ul class="list-container"></ul>`;
+        const listTemplate = testListTemplate;
 
         await reset({ model, listTemplate });
 

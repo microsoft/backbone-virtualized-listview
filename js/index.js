@@ -84,7 +84,10 @@ class ListView extends Backbone.View {
   initialize({
     model = {},
     listTemplate = defaultListTemplate,
-    applyPaddings = style => this.$container.css(style),
+    applyPaddings = ({ paddingTop, paddingBottom }) => {
+      this.$topFiller.height(paddingTop);
+      this.$bottomFiller.height(paddingBottom);
+    },
     events = {},
 
     items = [],
@@ -178,6 +181,14 @@ class ListView extends Backbone.View {
     if (this.invalidation & INVALIDATION_LIST) {
       this.$el.html(listTemplate(model));
       this.$container = this.$('.list-container');
+      this.$container.css({
+        marginTop: 0,
+        marginBottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+      });
+      this.$topFiller = this.$('.top-filler');
+      this.$bottomFiller = this.$('.bottom-filler');
       applyPaddings({
         paddingTop: 0,
         paddingBottom: this.itemHeights.read(items.length),
@@ -208,14 +219,14 @@ class ListView extends Backbone.View {
       const metricsViewport = viewport.getMetrics();
       const visibleTop = metricsViewport.outer.top;
       const visibleBot = metricsViewport.outer.bottom;
-      const rectContainer = $container.get(0).getBoundingClientRect();
+      const listTopCur = this.$topFiller.get(0).getBoundingClientRect().top;
       const scrollRatio = metricsViewport.scroll.ratioY;
 
       let renderTop = false;
       let renderBot = false;
 
       whileTrue(() => {
-        const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
+        const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : listTopCur;
         const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
         const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
         const renderFirst = Math.max(targetFirst - 10, 0);
@@ -232,13 +243,13 @@ class ListView extends Backbone.View {
           }
           if (!anchor) {
             const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
-            const top = rectContainer.top + itemHeights.read(index);
+            const top = listTopCur + itemHeights.read(index);
             anchor = { index, top };
           }
           invalidateItems = false;
         } else if (!anchor) {
           const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
-          const top = rectContainer.top + itemHeights.read(index);
+          const top = listTopCur + itemHeights.read(index);
           anchor = { index, top };
         }
 
@@ -287,15 +298,15 @@ class ListView extends Backbone.View {
 
       // Adjust the scroll if it's changed significantly
       const listTop = anchor.top - itemHeights.read(anchor.index);
-      const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
+      const innerTop = listTop - (listTopCur - metricsViewport.inner.top);
       const scrollTop = Math.round(visibleTop - innerTop);
       let anchorNew = null;
 
       // Do a second scroll for a middle anchor after the item is rendered
       if (anchor.isMiddle) {
         const index = anchor.index;
-        const itemTop = rectContainer.top + this.itemHeights.read(index);
-        const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
+        const itemTop = listTopCur + this.itemHeights.read(index);
+        const itemBot = listTopCur + this.itemHeights.read(index + 1);
 
         anchorNew = {
           index,
@@ -506,9 +517,9 @@ class ListView extends Backbone.View {
     const metricsViewport = this.viewport.getMetrics();
     const visibleTop = metricsViewport.outer.top;
     const visibleBot = metricsViewport.outer.bottom;
-    const rectContainer = this.$container.get(0).getBoundingClientRect();
-    const itemTop = rectContainer.top + this.itemHeights.read(index);
-    const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
+    const listTopCur = this.$topFiller.get(0).getBoundingClientRect().top;
+    const itemTop = listTopCur + this.itemHeights.read(index);
+    const itemBot = listTopCur + this.itemHeights.read(index + 1);
     let pos = position;
 
     if (pos === 'default') {
