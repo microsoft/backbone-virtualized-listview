@@ -1,10 +1,16 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
-import { expect } from 'chai';
+import chai from 'chai';
+import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 import ListView from '../js/index.js';
 import template from './test-container.jade';
 import { doAsync, sleep } from './test-util.js';
+
+chai.use(sinonChai);
+
+const expect = chai.expect;
 
 const redrawInterval = 100;
 
@@ -344,6 +350,24 @@ describe('ListView', function () {
         expect($ul.children().first().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
         checkViewportFillup();
       }));
+
+      it('should be able to reset the events', doAsync(async () => {
+        const spy = sinon.spy();
+        const events = { 'click li': spy };
+
+        await reset({ events });
+
+        const $ul = $('.test-container > ul');
+        $ul.children().first().click();
+        expect(spy).to.be.calledOnce;
+      }));
+
+      it('should invoke the callback immediatedly if reset with no valid options', function () {
+        const spy = sinon.spy();
+
+        listView.reset({ foo: 'bar' }, spy);
+        expect(spy).to.be.calledOnce;
+      });
 
       it('should be able to invalidate the rendered items', doAsync(async () => {
         const $ul = $('.test-container > ul');
