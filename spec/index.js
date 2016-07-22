@@ -84,6 +84,52 @@ describe('ListView', function () {
     });
   });
 
+  describe('Handling viewport events', function () {
+    const count = 20000;
+    let listView = null;
+
+    beforeEach(doAsync(async () => {
+      listView = new ListView({
+        el: '.test-container',
+        items: _.map(_.range(count), i => ({ text: i })),
+      });
+      listView.render();
+      listView.viewport.scrollTo({ y: 0 });
+      await sleep(redrawInterval);
+    }));
+
+    afterEach(doAsync(async () => {
+      listView.remove();
+      await sleep(redrawInterval);
+    }));
+
+    it('should trigger redraw on viewport change', doAsync(async () => {
+      const spy = sinon.spy();
+
+      listView.once('didRedraw', spy);
+      listView.viewport.trigger('change');
+      expect(spy).not.to.be.called;
+
+      await sleep(150);
+      expect(spy).to.be.calledOnce;
+    }));
+
+    it('should block redraw for 0.2 second when press a key', doAsync(async () => {
+      const spy = sinon.spy();
+
+      listView.once('didRedraw', spy);
+      listView.viewport.trigger('keypress');
+      listView.viewport.trigger('change');
+      expect(spy).not.to.be.called;
+
+      await sleep(150);
+      expect(spy).not.to.be.called;
+
+      await sleep(150);
+      expect(spy).to.be.calledOnce;
+    }));
+  });
+
   function getTestCases(viewFactory) {
     return function () {
       let listView = null;
