@@ -538,10 +538,12 @@ class ListView extends Backbone.View {
 
   /**
    * Render the list view.
+   * @param {function} [callback] The callback to notify completion.
    */
-  render() {
+  render(callback = _.noop) {
     this._hookUpViewport();
     this._invalidate(INVALIDATION_ALL);
+    this.once('didRedraw', callback);
     return this;
   }
 
