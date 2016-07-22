@@ -33,10 +33,6 @@ describe('ListView', function () {
     let listView = null;
 
     const model = { title: 'Test Properties' };
-    const applyPaddings = ({ paddingTop, paddingBottom }) => {
-      listView.$topFiller.height(paddingTop);
-      listView.$bottomFiller.height(paddingBottom);
-    };
     const listTemplate = testListTemplate;
     const itemTemplate = item => `<li>${item.text}</li>`;
     const defaultItemHeight = 18;
@@ -45,7 +41,6 @@ describe('ListView', function () {
       listView = new ListView({
         el: '.test-container',
         items: _.map(_.range(count), i => ({ text: i })),
-        applyPaddings,
         listTemplate,
         model,
         itemTemplate,
@@ -58,10 +53,6 @@ describe('ListView', function () {
       listView.remove();
       await sleep(redrawInterval);
     }));
-
-    it('should expose the applyPaddings callback', function () {
-      expect(listView.applyPaddings).to.equal(applyPaddings);
-    });
 
     it('should expose the lenght of the list', function () {
       expect(listView.length).to.equal(count);

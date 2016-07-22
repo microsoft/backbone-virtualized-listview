@@ -35,12 +35,6 @@ const INVALIDATION_ALL = 0xf;
  *  * __Note__: It must contain an empty element with class name
  *    `'list-container'`, as the parrent of all list items.
  *
- * __applyPaddings__: the callback to apply top and bottom placeholder paddings.
- *
- *  * If it's omitted, it will set the top and bottom padding of the
- *    `.list-container` element.
- *  * Can be reset by {@link ListView#reset}
- *
  * __items__: the model objects of the list items.
  *
  *  * Can be reset by {@link ListView#reset}
@@ -66,7 +60,6 @@ const INVALIDATION_ALL = 0xf;
  * @param {Object} options The constructor options.
  * @param {Object} options.model
  * @param {ListView~cbListTemplate} [options.listTemplate]
- * @param {ListView~cbApplyPaddings} [options.applyPaddings]
  * @param {Object[]} [options.items=[]]
  * @param {ListView~cbItemTemplate} [options.itemTemplate]
  * @param {number} [options.defaultItemHeight=20]
@@ -84,10 +77,6 @@ class ListView extends Backbone.View {
   initialize({
     model = {},
     listTemplate = defaultListTemplate,
-    applyPaddings = ({ paddingTop, paddingBottom }) => {
-      this.$topFiller.height(paddingTop);
-      this.$bottomFiller.height(paddingBottom);
-    },
     events = {},
 
     items = [],
@@ -99,7 +88,6 @@ class ListView extends Backbone.View {
     this.options = {
       model,
       listTemplate,
-      applyPaddings,
       events,
 
       items,
@@ -169,8 +157,15 @@ class ListView extends Backbone.View {
     super.remove();
   }
 
+  _applyPaddings({ paddingTop, paddingBottom }) {
+    if (this.$topFiller && this.$bottomFiller) {
+      this.$topFiller.height(paddingTop);
+      this.$bottomFiller.height(paddingBottom);
+    }
+  }
+
   _processInvalidation() {
-    const { applyPaddings, items, events, listTemplate, model } = this.options;
+    const { items, events, listTemplate, model } = this.options;
 
     if (this.invalidation & INVALIDATION_EVENTS) {
       this.undelegateEvents();
@@ -189,7 +184,7 @@ class ListView extends Backbone.View {
       });
       this.$topFiller = this.$('.top-filler');
       this.$bottomFiller = this.$('.bottom-filler');
-      applyPaddings({
+      this._applyPaddings({
         paddingTop: 0,
         paddingBottom: this.itemHeights.read(items.length),
       });
@@ -207,7 +202,7 @@ class ListView extends Backbone.View {
   // Private API, redraw immediately
   _redraw() {
     let invalidateItems = this._processInvalidation();
-    const { applyPaddings, items, itemTemplate } = this.options;
+    const { items, itemTemplate } = this.options;
     const { viewport, itemHeights, $container } = this;
     let { indexFirst, indexLast, anchor } = this;
 
@@ -290,7 +285,7 @@ class ListView extends Backbone.View {
 
       // Update the padding
       if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
-        applyPaddings({
+        this._applyPaddings({
           paddingTop: itemHeights.read(indexFirst),
           paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
         });
@@ -331,22 +326,6 @@ class ListView extends Backbone.View {
     this.anchor = null;
 
     this.trigger('didRedraw');
-  }
-
-  /**
-   * Callback to set the top and bottom placeholder paddings.
-   * @callback ListView~cbApplyPaddings
-   * @param {Object} style The padding styles.
-   * @param {number} style.paddingTop The top padding.
-   * @param {number} style.paddingBottom The bottom padding.
-   */
-
-  /**
-   * The callback to apply paddings.
-   * @type {ListView~cbApplyPaddings}
-   */
-  get applyPaddings() {
-    return this.options.applyPaddings;
   }
 
   /**
@@ -427,7 +406,6 @@ class ListView extends Backbone.View {
    *
    *  * model
    *  * listTemplate
-   *  * applyPaddings
    *  * items
    *  * itemTemplate
    *  * defaultItemHeight
@@ -443,7 +421,7 @@ class ListView extends Backbone.View {
 
     _.extend(this.options, options);
 
-    if (_.some(['model', 'listTemplate', 'applyPaddings'], isSet)) {
+    if (_.some(['model', 'listTemplate'], isSet)) {
       this._invalidate(INVALIDATION_ALL);
     } else {
       if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
