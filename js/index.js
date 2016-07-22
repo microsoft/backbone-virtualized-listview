@@ -28,27 +28,45 @@ const INVALIDATION_ALL = 0xf;
  * @param {Object} options.model
  * The model object to render the skeleton of the list view.
  *
+ * Can be reset by {@link ListView#reset}
+ *
  * @param {ListView~cbListTemplate} [options.listTemplate]
  * The template to render the skeleton of the list view.
+ *
+ * Can be reset by {@link ListView#reset}
  *
  * It must contain an empty element with class name `'list-container'`, as
  * the parrent of all list items.
  *
  * By default, it would render a single `UL`.
  *
+ * @param {ListView~cbApplyPaddings} [options.applyPaddings]
+ * The callback to apply top and bottom placeholder paddings.
+ *
+ * Can be reset by {@link ListView#reset}
+ *
+ * If it's omitted, it will set the top and bottom padding of the
+ * `.list-container` element.
+ *
+ * @param {Object[]} [options.items=[]]
+ * The list data items.
+ *
+ * Can be reset by {@link ListView#reset}
+ *
  * @param {ListView~cbItemTemplate} [options.itemTemplate]
  * The template to render a list item.
+ *
+ * Can be reset by {@link ListView#reset}
  *
  * Note: list items **MUST NOT** have outer margins, otherwise the layout
  * calculation will be inaccurate.
  *
  * By default, it would render a single `LI` filled with `item.text`.
  *
- * @param {Object[]} [options.items=[]]
- * The list data items.
- *
  * @param {number} [options.defaultItemHeight=20]
  * The estimated height of a single item.
+ *
+ * Can be reset by {@link ListView#reset}
  *
  * It's not necessary to be accurate. But the accurater it is, the less
  * the scroll bar is adjusted overtime.
@@ -56,13 +74,9 @@ const INVALIDATION_ALL = 0xf;
  * @param {string} [options.viewport]
  * The CSS selector to locate the scrollable viewport.
  *
+ * Cannot be reset by ListView#reset.
+ *
  * If it's omitted, the `window` will be used as the viewport.
- *
- * @param {ListView~cbApplyPaddings} [options.applyPaddings]
- * The callback to apply top and bottom placeholder paddings.
- *
- * If it's omitted, it will set the top and bottom padding of the
- * `.list-container` element.
  *
  */
 
@@ -71,6 +85,7 @@ class ListView extends Backbone.View {
   /**
    * Backbone view initializer
    * @see ListView
+   *
    */
   initialize({
     model = {},
@@ -401,10 +416,19 @@ class ListView extends Backbone.View {
   }
 
   /**
-   * Reset the items and defaultItemHeight.
-   * @param {Object} options
-   * @param {Object[]} [options.items] The new data items.
-   * @param {number} [options.defaultItemHeight] The new estimated item height.
+   * Reset the list view options. The following options can be reset
+   *
+   *  * model
+   *  * listTemplate
+   *  * applyPaddings
+   *  * items
+   *  * itemTemplate
+   *  * defaultItemHeight
+   *  * events
+   *
+   * Refer to {@link ListView} for detail.
+   *
+   * @param {Object} options The new options.
    * @param {function} [callback] The callback to notify completion.
    */
   reset(options = {}, callback = _.noop) {
