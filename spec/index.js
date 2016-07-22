@@ -319,6 +319,31 @@ describe('ListView', function () {
         expect($ul.length).to.equal(1);
         expect($ul.children().length).to.equal(0);
       }));
+
+      it('should be able to reset the model and listTemplate', doAsync(async () => {
+        const title = 'New Template';
+        const model = { title };
+        const listTemplate = ({ title }) => `<h2>${title}</h2><ul class="list-container"></ul>`;
+
+        await reset({ model, listTemplate });
+
+        const $h2 = $('.test-container > h2');
+        expect($h2.length).to.equal(1);
+        expect($h2.text()).to.equal(title);
+        checkViewportFillup();
+      }));
+
+      it('should be able to reset the itemTemplate', doAsync(async () => {
+        const prefix = 'item';
+        const itemTemplate = ({ text }) => `<li>${prefix} - ${text}</li>`;
+
+        await reset({ itemTemplate });
+
+        const $ul = $('.test-container > ul');
+        expect($ul.children().length).to.be.at.least(1);
+        expect($ul.children().first().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
+        checkViewportFillup();
+      }));
     };
   }
 

@@ -303,10 +303,6 @@ class ListView extends Backbone.View {
       return !isCompleted;
     });
 
-    if (anchor && _.isFunction(anchor.callback)) {
-      anchor.callback();
-    }
-
     // Write back the render state
     this.indexFirst = indexFirst;
     this.indexLast = indexLast;
