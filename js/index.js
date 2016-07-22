@@ -184,9 +184,12 @@ class ListView extends Backbone.View {
 
   // Private API, redraw immediately
   _redraw() {
-    whileTrue(() => {
-      let invalidateItems = this._processInvalidation();
+    let invalidateItems = this._processInvalidation();
 
+    this.trigger('willRedraw');
+
+    whileTrue(() => {
+      let isCompleted = true;
       const { applyPaddings, items, itemTemplate } = this.options;
       const { viewport, itemHeights, $container } = this;
       let { indexFirst, indexLast, anchor } = this;
@@ -276,7 +279,6 @@ class ListView extends Backbone.View {
       const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
       const scrollTop = Math.round(visibleTop - innerTop);
       let anchorNew = null;
-      let isCompleted = true;
 
       // Write back the render state
       this.indexFirst = indexFirst;
@@ -313,6 +315,8 @@ class ListView extends Backbone.View {
       }
       return !isCompleted;
     });
+
+    this.trigger('didRedraw');
   }
 
   /**
