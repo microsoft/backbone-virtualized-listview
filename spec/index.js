@@ -271,7 +271,8 @@ describe('ListView', function () {
         await scrollToItem(999);
         checkItemLocation(999, 'top');
 
-        await scrollToItem(999);
+        listView.scrollToItem(999);
+        await sleep(redrawInterval);
         checkItemLocation(999, 'top');
 
         const top = getElementRect(1000).top;
@@ -296,12 +297,14 @@ describe('ListView', function () {
         expect(() => view.scrollToItem(10)).to.throw(message);
       });
 
-      it('should be able to reset the items and defaultItemHeight', doAsync(async () => {
+      it('should be able to reset the defaultItemHeight', doAsync(async () => {
         const height = viewportMetrics().inner.height;
         listView.reset({ defaultItemHeight: 22 });
         await sleep(redrawInterval);
         expect(viewportMetrics().inner.height).to.be.above(height);
+      }));
 
+      it('should be able to reset the items', doAsync(async () => {
         const $ul = $('.test-container > ul');
         const text = 'hello world!';
         listView.reset({

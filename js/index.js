@@ -264,13 +264,6 @@ class ListView extends Backbone.View {
 
     // Update the padding
     if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
-      /**
-       * Callback to set the top and bottom placeholder paddings.
-       * @callback ListView~cbApplyPaddings
-       * @param {Object} style The padding styles.
-       * @param {number} style.paddingTop The top padding.
-       * @param {number} style.paddingBottom The bottom padding.
-       */
       applyPaddings({
         paddingTop: itemHeights.read(indexFirst),
         paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
@@ -319,6 +312,14 @@ class ListView extends Backbone.View {
       this._scheduleRedraw();
     }
   }
+
+  /**
+   * Callback to set the top and bottom placeholder paddings.
+   * @callback ListView~cbApplyPaddings
+   * @param {Object} style The padding styles.
+   * @param {number} style.paddingTop The top padding.
+   * @param {number} style.paddingBottom The bottom padding.
+   */
 
   /**
    * The callback to apply paddings.
