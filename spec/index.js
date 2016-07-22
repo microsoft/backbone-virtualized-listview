@@ -344,6 +344,16 @@ describe('ListView', function () {
         expect($ul.children().first().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
         checkViewportFillup();
       }));
+
+      it('should be able to invalidate the rendered items', doAsync(async () => {
+        const $ul = $('.test-container > ul');
+        const elFirst = $ul.children().get(0);
+
+        await new Promise(resolve => listView.invalidate(resolve));
+
+        const elFirstNew = $ul.children().get(0);
+        expect(elFirstNew).not.to.equal(elFirst);
+      }));
     };
   }
 

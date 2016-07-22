@@ -438,9 +438,11 @@ class ListView extends Backbone.View {
 
   /**
    * Invalidate the already rendered items and schedule another redraw.
+   * @param {function} [callback] The callback to notify completion.
    */
-  invalidate() {
+  invalidate(callback = _.noop) {
     this._invalidate(INVALIDATION_ITEMS);
+    this.once('didRedraw', callback);
   }
 
   /**
