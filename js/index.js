@@ -95,15 +95,12 @@ class ListView extends Backbone.View {
       defaultItemHeight,
     };
 
-    this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
-
     // States
     this.indexFirst = 0;
     this.indexLast = 0;
     this.anchor = null;
     this.invalidation = INVALIDATION_NONE;
 
-    // Event handling
     this._scheduleRedraw = (() => {
       let requestId = null;
 
@@ -117,29 +114,33 @@ class ListView extends Backbone.View {
       };
     })();
 
-    let blockUntil = 0;
+    this._hookUpViewport = () => {
+      let blockUntil = 0;
 
-    const onViewportChange = () => {
-      if (performance.now() > blockUntil) {
-        this._scheduleRedraw();
-      } else {
-        // If the scroll events are blocked, we shouldn't just swallow them.
-        // Wait for 0.1 second and give another try.
-        window.setTimeout(onViewportChange, 100);
-      }
+      const onViewportChange = () => {
+        if (performance.now() > blockUntil) {
+          this._scheduleRedraw();
+        } else {
+          // If the scroll events are blocked, we shouldn't just swallow them.
+          // Wait for 0.1 second and give another try.
+          window.setTimeout(onViewportChange, 100);
+        }
+      };
+
+      this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
+
+      this.viewport.on('change', onViewportChange);
+
+      //
+      // On keypress, we want to block the scroll events for 0.2 second to wait
+      // for the animation to complete. Otherwise, the scroll would change the
+      // geometry metrics and break the animation. The worst thing we may get is,
+      // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
+      //
+      this.viewport.on('keypress', () => {
+        blockUntil = performance.now() + 200;
+      });
     };
-
-    this.viewport.on('change', onViewportChange);
-
-    //
-    // On keypress, we want to block the scroll events for 0.2 second to wait
-    // for the animation to complete. Otherwise, the scroll would change the
-    // geometry metrics and break the animation. The worst thing we may get is,
-    // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
-    //
-    this.viewport.on('keypress', () => {
-      blockUntil = performance.now() + 200;
-    });
   }
 
   /**
@@ -383,11 +384,6 @@ class ListView extends Backbone.View {
     return this._itemHeights;
   }
 
-  rebindEvents() {
-    this.undelegateEvents();
-    this.delegateEvents(_.get(this.options, 'events', {}));
-  }
-
   /**
    * Reset the items and defaultItemHeight.
    * @param {Object} options
@@ -439,6 +435,10 @@ class ListView extends Backbone.View {
    *   * `{number}`, scroll the item to the given offset from the viewport top.
    */
   scrollToItem(index, position = 'default') {
+    if (!this.$container) {
+      throw new Error('Cannot scroll before the view is rendered');
+    }
+
     const metricsViewport = this.viewport.getMetrics();
     const visibleTop = metricsViewport.outer.top;
     const visibleBot = metricsViewport.outer.bottom;
@@ -489,6 +489,7 @@ class ListView extends Backbone.View {
    * Render the list view.
    */
   render() {
+    this._hookUpViewport();
     this._invalidate(INVALIDATION_ALL);
     return this;
   }

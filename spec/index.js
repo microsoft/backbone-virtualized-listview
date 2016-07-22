@@ -250,6 +250,12 @@ describe('ListView', function () {
         });
       });
 
+      it('should complain about the view is not rendered', function () {
+        const view = viewFactory({ size: 20000 });
+        const message = 'Cannot scroll before the view is rendered';
+        expect(() => view.scrollToItem(10)).to.throw(message);
+      });
+
       it('should be able to reset the items and defaultItemHeight', doAsync(async () => {
         const height = viewportMetrics().inner.height;
         listView.reset({ defaultItemHeight: 22 });
