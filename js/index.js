@@ -184,133 +184,135 @@ class ListView extends Backbone.View {
 
   // Private API, redraw immediately
   _redraw() {
-    let invalidateItems = this._processInvalidation();
-
-    const { applyPaddings, items, itemTemplate } = this.options;
-    const { viewport, itemHeights, $container } = this;
-    let { indexFirst, indexLast, anchor } = this;
-
-    const metricsViewport = viewport.getMetrics();
-    const visibleTop = metricsViewport.outer.top;
-    const visibleBot = metricsViewport.outer.bottom;
-    const rectContainer = $container.get(0).getBoundingClientRect();
-    const scrollRatio = metricsViewport.scroll.ratioY;
-
-    let renderTop = false;
-    let renderBot = false;
-
     whileTrue(() => {
-      const listTop = _.has(anchor, 'index') ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
-      const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
-      const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
-      const renderFirst = Math.max(targetFirst - 10, 0);
-      const renderLast = Math.min(targetLast + 10, items.length);
+      let invalidateItems = this._processInvalidation();
 
-      let renderMore = false;
+      const { applyPaddings, items, itemTemplate } = this.options;
+      const { viewport, itemHeights, $container } = this;
+      let { indexFirst, indexLast, anchor } = this;
 
-      // Clean up
-      if (targetFirst >= indexLast || targetLast <= indexFirst || invalidateItems) {
-        $container.empty();
-        indexFirst = indexLast = targetFirst;
-        if (targetFirst !== targetLast && items.length > 0) {
-          renderMore = true;
-        }
-        if (!_.has(anchor, 'index')) {
-          const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
+      const metricsViewport = viewport.getMetrics();
+      const visibleTop = metricsViewport.outer.top;
+      const visibleBot = metricsViewport.outer.bottom;
+      const rectContainer = $container.get(0).getBoundingClientRect();
+      const scrollRatio = metricsViewport.scroll.ratioY;
+
+      let renderTop = false;
+      let renderBot = false;
+
+      whileTrue(() => {
+        const listTop = _.has(anchor, 'index') ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
+        const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
+        const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
+        const renderFirst = Math.max(targetFirst - 10, 0);
+        const renderLast = Math.min(targetLast + 10, items.length);
+
+        let renderMore = false;
+
+        // Clean up
+        if (targetFirst >= indexLast || targetLast <= indexFirst || invalidateItems) {
+          $container.empty();
+          indexFirst = indexLast = targetFirst;
+          if (targetFirst !== targetLast && items.length > 0) {
+            renderMore = true;
+          }
+          if (!_.has(anchor, 'index')) {
+            const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
+            const top = rectContainer.top + itemHeights.read(index);
+            anchor = _.extend({}, anchor, { index, top });
+          }
+          invalidateItems = false;
+        } else if (!_.has(anchor, 'index')) {
+          const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
           const top = rectContainer.top + itemHeights.read(index);
           anchor = _.extend({}, anchor, { index, top });
         }
-        invalidateItems = false;
-      } else if (!_.has(anchor, 'index')) {
-        const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
-        const top = rectContainer.top + itemHeights.read(index);
-        anchor = _.extend({}, anchor, { index, top });
-      }
 
-      // Render top
-      if (targetFirst < indexFirst) {
-        $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
-        $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
-          itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
-        });
-        indexFirst = renderFirst;
-        renderMore = renderTop = true;
-      } else if (renderBot && !renderTop && renderFirst > indexFirst) {
-        const removal = [];
-        $container.children().slice(0, renderFirst - indexFirst).each((offset, el) => removal.push(el));
-        $(removal).remove();
-        indexFirst = renderFirst;
-        renderMore = true;
-      }
+        // Render top
+        if (targetFirst < indexFirst) {
+          $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
+          $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
+            itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
+          });
+          indexFirst = renderFirst;
+          renderMore = renderTop = true;
+        } else if (renderBot && !renderTop && renderFirst > indexFirst) {
+          const removal = [];
+          $container.children().slice(0, renderFirst - indexFirst).each((offset, el) => removal.push(el));
+          $(removal).remove();
+          indexFirst = renderFirst;
+          renderMore = true;
+        }
 
-      // Render bottom
-      if (targetLast > indexLast) {
-        $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
-        $container.children().slice(indexLast - indexFirst).each((offset, el) => {
-          itemHeights.writeSingle(indexLast + offset, el.getBoundingClientRect().height);
-        });
-        indexLast = renderLast;
-        renderMore = renderBot = true;
-      } else if (renderTop && !renderBot && renderLast < indexLast) {
-        const removal = [];
-        $container.children().slice(renderLast - indexFirst).each((offset, el) => removal.push(el));
-        $(removal).remove();
-        indexLast = renderLast;
-        renderMore = true;
-      }
+        // Render bottom
+        if (targetLast > indexLast) {
+          $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
+          $container.children().slice(indexLast - indexFirst).each((offset, el) => {
+            itemHeights.writeSingle(indexLast + offset, el.getBoundingClientRect().height);
+          });
+          indexLast = renderLast;
+          renderMore = renderBot = true;
+        } else if (renderTop && !renderBot && renderLast < indexLast) {
+          const removal = [];
+          $container.children().slice(renderLast - indexFirst).each((offset, el) => removal.push(el));
+          $(removal).remove();
+          indexLast = renderLast;
+          renderMore = true;
+        }
 
-      return renderMore;
-    });
-
-    // Update the padding
-    if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
-      applyPaddings({
-        paddingTop: itemHeights.read(indexFirst),
-        paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
+        return renderMore;
       });
-    }
 
-    // Adjust the scroll if it's changed significantly
-    const listTop = anchor.top - itemHeights.read(anchor.index);
-    const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
-    const scrollTop = Math.round(visibleTop - innerTop);
-    let anchorNew = null;
-    let isCompleted = true;
-
-    // Write back the render state
-    this.indexFirst = indexFirst;
-    this.indexLast = indexLast;
-
-    // Do a second scroll for a middle anchor after the item is rendered
-    if (anchor.isMiddle) {
-      const index = anchor.index;
-      const itemTop = rectContainer.top + this.itemHeights.read(index);
-      const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
-
-      anchorNew = {
-        index,
-        top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
-        callback: anchor.callback,
-      };
-      isCompleted = false;
-    }
-
-    if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
-      this.viewport.scrollTo({ y: scrollTop });
-      anchorNew = _.extend({}, anchorNew, _.pick(anchor, 'callback'));
-      isCompleted = false;
-    }
-
-
-    if (isCompleted) {
-      if (anchor && _.isFunction(anchor.callback)) {
-        anchor.callback();
+      // Update the padding
+      if (indexFirst !== this.indexFirst || indexLast !== this.indexLast) {
+        applyPaddings({
+          paddingTop: itemHeights.read(indexFirst),
+          paddingBottom: itemHeights.read(items.length) - itemHeights.read(indexLast),
+        });
       }
-      this.anchor = null;
-    } else {
-      this.anchor = anchorNew;
-      this._scheduleRedraw();
-    }
+
+      // Adjust the scroll if it's changed significantly
+      const listTop = anchor.top - itemHeights.read(anchor.index);
+      const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
+      const scrollTop = Math.round(visibleTop - innerTop);
+      let anchorNew = null;
+      let isCompleted = true;
+
+      // Write back the render state
+      this.indexFirst = indexFirst;
+      this.indexLast = indexLast;
+
+      // Do a second scroll for a middle anchor after the item is rendered
+      if (anchor.isMiddle) {
+        const index = anchor.index;
+        const itemTop = rectContainer.top + this.itemHeights.read(index);
+        const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
+
+        anchorNew = {
+          index,
+          top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
+          callback: anchor.callback,
+        };
+        isCompleted = false;
+      }
+
+      if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
+        this.viewport.scrollTo({ y: scrollTop });
+        anchorNew = _.extend({}, anchorNew, _.pick(anchor, 'callback'));
+        isCompleted = false;
+      }
+
+
+      if (isCompleted) {
+        if (anchor && _.isFunction(anchor.callback)) {
+          anchor.callback();
+        }
+        this.anchor = null;
+      } else {
+        this.anchor = anchorNew;
+      }
+      return !isCompleted;
+    });
   }
 
   /**
