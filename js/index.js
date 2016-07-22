@@ -409,8 +409,9 @@ class ListView extends Backbone.View {
    * @param {Object} options
    * @param {Object[]} [options.items] The new data items.
    * @param {number} [options.defaultItemHeight] The new estimated item height.
+   * @param {function} [callback] The callback to notify completion.
    */
-  reset(options = {}) {
+  reset(options = {}, callback = _.noop) {
     const isSet = key => _.has(options, key);
 
     _.extend(this.options, options);
@@ -425,6 +426,12 @@ class ListView extends Backbone.View {
       if (isSet('events')) {
         this._invalidate(INVALIDATION_EVENTS);
       }
+    }
+
+    if (this.invalidation) {
+      this.once('didRedraw', callback);
+    } else if (_.isFunction(callback)) {
+      callback();
     }
   }
 

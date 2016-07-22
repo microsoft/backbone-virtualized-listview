@@ -159,6 +159,10 @@ describe('ListView', function () {
         return new Promise(resolve => listView.scrollToItem(...(args.concat([resolve]))));
       }
 
+      function reset(options) {
+        return new Promise(resolve => listView.reset(options, resolve));
+      }
+
       it('should create the ListView correctly', function () {
         expect($('.test-container').get(0)).to.equal(listView.el);
         expect($('.test-container > ul > li').length).to.be.above(0);
@@ -299,27 +303,19 @@ describe('ListView', function () {
 
       it('should be able to reset the defaultItemHeight', doAsync(async () => {
         const height = viewportMetrics().inner.height;
-        listView.reset({ defaultItemHeight: 22 });
-        await sleep(redrawInterval);
+        await reset({ defaultItemHeight: 22 });
         expect(viewportMetrics().inner.height).to.be.above(height);
       }));
 
       it('should be able to reset the items', doAsync(async () => {
         const $ul = $('.test-container > ul');
         const text = 'hello world!';
-        listView.reset({
-          items: [{ text }],
-        });
-        await sleep(redrawInterval);
 
+        await reset({ items: [{ text }] });
         expect($ul.children().length).to.equal(1);
         expect($ul.children().text()).to.equal(text);
 
-        listView.reset({
-          items: [],
-        });
-        await sleep(redrawInterval);
-
+        await reset({ items: [] });
         expect($ul.length).to.equal(1);
         expect($ul.children().length).to.equal(0);
       }));
