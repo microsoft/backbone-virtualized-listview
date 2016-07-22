@@ -155,6 +155,10 @@ describe('ListView', function () {
         expect(scrollTop).to.be.at.least(scrollTopMax - 1);
       }
 
+      function scrollToItem(...args) {
+        return new Promise(resolve => listView.scrollToItem(...(args.concat([resolve]))));
+      }
+
       it('should create the ListView correctly', function () {
         expect($('.test-container').get(0)).to.equal(listView.el);
         expect($('.test-container > ul > li').length).to.be.above(0);
@@ -197,15 +201,13 @@ describe('ListView', function () {
 
       it('should be able to scroll an element to top', doAsync(async () => {
         for (let index of [0, 1, 11, 111, 1111, 11111]) {
-          listView.scrollToItem(index, 'top');
-          await sleep(redrawInterval);
+          await scrollToItem(index, 'top');
 
           checkItemLocation(index, 'top');
           checkViewportFillup();
         }
 
-        listView.scrollToItem(listView.options.items.length - 1, 'top');
-        await sleep(redrawInterval);
+        await scrollToItem(listView.options.items.length - 1, 'top');
 
         checkScrolledToBottom();
         checkViewportFillup();
@@ -213,15 +215,13 @@ describe('ListView', function () {
 
       it('should be able to scroll an element to bottom', doAsync(async () => {
         for (let index of [11111, 11110, 11100, 11000, 10000]) {
-          listView.scrollToItem(index, 'bottom');
-          await sleep(redrawInterval);
+          await scrollToItem(index, 'bottom');
 
           checkItemLocation(index, 'bottom');
           checkViewportFillup();
         }
 
-        listView.scrollToItem(0, 'bottom');
-        await sleep(redrawInterval);
+        await scrollToItem(0, 'bottom');
 
         checkScrolledToTop();
         checkViewportFillup();
@@ -229,21 +229,18 @@ describe('ListView', function () {
 
       it('should be able to scroll an element to middle', doAsync(async () => {
         for (let index of [11111, 11110, 11100, 11000, 10000]) {
-          listView.scrollToItem(index, 'middle');
-          await sleep(redrawInterval);
+          await scrollToItem(index, 'middle');
 
           checkItemLocation(index, 'middle');
           checkViewportFillup();
         }
 
-        listView.scrollToItem(0, 'middle');
-        await sleep(redrawInterval);
+        await scrollToItem(0, 'middle');
 
         checkScrolledToTop();
         checkViewportFillup();
 
-        listView.scrollToItem(listView.options.items.length - 1, 'middle');
-        await sleep(redrawInterval);
+        await scrollToItem(listView.options.items.length - 1, 'middle');
 
         checkScrolledToBottom();
         checkViewportFillup();
@@ -254,8 +251,7 @@ describe('ListView', function () {
         const height = viewportMetrics().outer.height;
 
         for (let pos of [0, 0.2, 0.5, 0.7, 0.9].map(rate => rate * height)) {
-          listView.scrollToItem(index, pos);
-          await sleep(redrawInterval);
+          await scrollToItem(index, pos);
 
           checkItemLocation(index, pos);
           checkViewportFillup();
@@ -263,35 +259,23 @@ describe('ListView', function () {
       }));
 
       it('should be scroll item to nearest visible location with "default" option', doAsync(async () => {
-        listView.scrollToItem(2000);
-        await sleep(redrawInterval);
-
+        await scrollToItem(2000);
         checkItemLocation(2000, 'bottom');
 
-        listView.scrollToItem(2001);
-        await sleep(redrawInterval);
-
+        await scrollToItem(2001);
         checkItemLocation(2001, 'bottom');
 
-        listView.scrollToItem(1000);
-        await sleep(redrawInterval);
-
+        await scrollToItem(1000);
         checkItemLocation(1000, 'top');
 
-        listView.scrollToItem(999);
-        await sleep(redrawInterval);
-
+        await scrollToItem(999);
         checkItemLocation(999, 'top');
 
-        listView.scrollToItem(999);
-        await sleep(redrawInterval);
-
+        await scrollToItem(999);
         checkItemLocation(999, 'top');
 
-        const { top } = getElementRect(1000);
-        listView.scrollToItem(1000);
-        await sleep(redrawInterval);
-
+        const top = getElementRect(1000).top;
+        await scrollToItem(1000);
         expect(Math.abs(getElementRect(1000).top - top)).to.be.below(1);
       }));
 
@@ -301,7 +285,6 @@ describe('ListView', function () {
           'some-where',
           { foo: 'bar' },
           ['foo', 'bar'],
-          _.noop,
         ], pos => {
           expect(() => listView.scrollToItem(0, pos)).to.throw('Invalid position');
         });

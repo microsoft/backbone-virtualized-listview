@@ -100,6 +100,7 @@ class ListView extends Backbone.View {
     this.indexLast = 0;
     this.anchor = null;
     this.invalidation = INVALIDATION_NONE;
+    this.removed = false;
 
     this._scheduleRedraw = (() => {
       let requestId = null;
@@ -108,7 +109,9 @@ class ListView extends Backbone.View {
         if (!requestId) {
           requestId = window.requestAnimationFrame(() => {
             requestId = null;
-            this._redraw();
+            if (!this.removed) {
+              this._redraw();
+            }
           });
         }
       };
@@ -120,7 +123,7 @@ class ListView extends Backbone.View {
       const onViewportChange = () => {
         if (performance.now() > blockUntil) {
           this._scheduleRedraw();
-        } else {
+        } else if (!this.removed) {
           // If the scroll events are blocked, we shouldn't just swallow them.
           // Wait for 0.1 second and give another try.
           window.setTimeout(onViewportChange, 100);
@@ -147,7 +150,8 @@ class ListView extends Backbone.View {
    * Remove the view and unregister the event listeners.
    */
   remove() {
-    this.viewport.remove();
+    this.removed = true;
+    this.viewport && this.viewport.remove();
     super.remove();
   }
 
@@ -196,7 +200,7 @@ class ListView extends Backbone.View {
     let renderBot = false;
 
     whileTrue(() => {
-      const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
+      const listTop = _.has(anchor, 'index') ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
       const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
       const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
       const renderFirst = Math.max(targetFirst - 10, 0);
@@ -211,16 +215,16 @@ class ListView extends Backbone.View {
         if (targetFirst !== targetLast && items.length > 0) {
           renderMore = true;
         }
-        if (!anchor) {
+        if (!_.has(anchor, 'index')) {
           const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
           const top = rectContainer.top + itemHeights.read(index);
-          anchor = { index, top };
+          anchor = _.extend({}, anchor, { index, top });
         }
         invalidateItems = false;
-      } else if (!anchor) {
+      } else if (!_.has(anchor, 'index')) {
         const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
         const top = rectContainer.top + itemHeights.read(index);
-        anchor = { index, top };
+        anchor = _.extend({}, anchor, { index, top });
       }
 
       // Render top
@@ -277,11 +281,8 @@ class ListView extends Backbone.View {
     const listTop = anchor.top - itemHeights.read(anchor.index);
     const innerTop = listTop - (rectContainer.top - metricsViewport.inner.top);
     const scrollTop = Math.round(visibleTop - innerTop);
-
-    if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
-      this.viewport.scrollTo({ y: scrollTop });
-      this._scheduleRedraw();
-    }
+    let anchorNew = null;
+    let isCompleted = true;
 
     // Write back the render state
     this.indexFirst = indexFirst;
@@ -293,13 +294,29 @@ class ListView extends Backbone.View {
       const itemTop = rectContainer.top + this.itemHeights.read(index);
       const itemBot = rectContainer.top + this.itemHeights.read(index + 1);
 
-      this.anchor = {
+      anchorNew = {
         index,
         top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
+        callback: anchor.callback,
       };
-      this._scheduleRedraw();
-    } else {
+      isCompleted = false;
+    }
+
+    if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
+      this.viewport.scrollTo({ y: scrollTop });
+      anchorNew = _.extend({}, anchorNew, _.pick(anchor, 'callback'));
+      isCompleted = false;
+    }
+
+
+    if (isCompleted) {
+      if (anchor && _.isFunction(anchor.callback)) {
+        anchor.callback();
+      }
       this.anchor = null;
+    } else {
+      this.anchor = anchorNew;
+      this._scheduleRedraw();
     }
   }
 
@@ -424,6 +441,7 @@ class ListView extends Backbone.View {
    * Scroll to a certain item.
    * @param {number} index The index of the item.
    * @param {string|number} [position='default'] The position of the item.
+   * @param {function} [callback] The callback to notify completion.
    *
    * The valid positions are
    *   * `'default'`, if the item is above the viewport top, scroll it to the
@@ -434,11 +452,29 @@ class ListView extends Backbone.View {
    *   * `'bottom'`, scroll the item to the bottom of the viewport.
    *   * `{number}`, scroll the item to the given offset from the viewport top.
    */
-  scrollToItem(index, position = 'default') {
+  scrollToItem(...args) {
     if (!this.$container) {
       throw new Error('Cannot scroll before the view is rendered');
     }
+    let index = 0;
+    let position = 'default';
+    let callback = _.noop;
 
+    if (args.length >= 3) {
+      [index, position, callback] = args;
+    } else if (args.length === 2) {
+      if (_.isFunction(args[1])) {
+        [index, callback] = args;
+      } else {
+        [index, position] = args;
+      }
+    } else if (args.length === 1) {
+      index = args[0];
+    }
+    this._scrollToItem(index, position, callback);
+  }
+
+  _scrollToItem(index, position, callback) {
     const metricsViewport = this.viewport.getMetrics();
     const visibleTop = metricsViewport.outer.top;
     const visibleBot = metricsViewport.outer.bottom;
@@ -453,6 +489,9 @@ class ListView extends Backbone.View {
       } else if (itemBot > visibleBot) {
         pos = 'bottom';
       } else {
+        if (_.isFunction(callback)) {
+          callback();
+        }
         return;
       }
     }
@@ -481,6 +520,8 @@ class ListView extends Backbone.View {
     } else {
       throw new Error('Invalid position');
     }
+
+    this.anchor.callback = callback;
 
     this._scheduleRedraw();
   }
