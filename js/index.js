@@ -204,7 +204,7 @@ class ListView extends Backbone.View {
       let renderBot = false;
 
       whileTrue(() => {
-        const listTop = _.has(anchor, 'index') ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
+        const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : rectContainer.top;
         const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
         const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
         const renderFirst = Math.max(targetFirst - 10, 0);
@@ -219,16 +219,16 @@ class ListView extends Backbone.View {
           if (targetFirst !== targetLast && items.length > 0) {
             renderMore = true;
           }
-          if (!_.has(anchor, 'index')) {
+          if (!anchor) {
             const index = Math.round(targetFirst * (1 - scrollRatio) + targetLast * scrollRatio);
             const top = rectContainer.top + itemHeights.read(index);
-            anchor = _.extend({}, anchor, { index, top });
+            anchor = { index, top };
           }
           invalidateItems = false;
-        } else if (!_.has(anchor, 'index')) {
+        } else if (!anchor) {
           const index = Math.round(indexFirst * (1 - scrollRatio) + indexLast * scrollRatio);
           const top = rectContainer.top + itemHeights.read(index);
-          anchor = _.extend({}, anchor, { index, top });
+          anchor = { index, top };
         }
 
         // Render top
@@ -289,32 +289,28 @@ class ListView extends Backbone.View {
         anchorNew = {
           index,
           top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
-          callback: anchor.callback,
         };
         isCompleted = false;
       }
 
       if (Math.abs(scrollTop - viewport.getMetrics().scroll.y) >= 1) {
         this.viewport.scrollTo({ y: scrollTop });
-        anchorNew = _.extend({}, anchorNew, _.pick(anchor, 'callback'));
         isCompleted = false;
       }
 
-      if (isCompleted) {
-        if (anchor && _.isFunction(anchor.callback)) {
-          anchor.callback();
-        }
-        anchor = null;
-      } else {
-        anchor = anchorNew;
-      }
+      anchor = anchorNew;
+
       return !isCompleted;
     });
+
+    if (anchor && _.isFunction(anchor.callback)) {
+      anchor.callback();
+    }
 
     // Write back the render state
     this.indexFirst = indexFirst;
     this.indexLast = indexLast;
-    this.anchor = anchor;
+    this.anchor = null;
 
     this.trigger('didRedraw');
   }
@@ -528,7 +524,7 @@ class ListView extends Backbone.View {
       throw new Error('Invalid position');
     }
 
-    this.anchor.callback = callback;
+    this.once('didRedraw', callback);
 
     this._scheduleRedraw();
   }
