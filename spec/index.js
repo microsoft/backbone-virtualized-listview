@@ -31,7 +31,7 @@ describe('ListView', function () {
     const count = 20000;
     let listView = null;
 
-    const model = {}
+    const model = {};
     const applyPaddings = style => listView.$container.css(style);
     const listTemplate = () => '<ul class="list-container"></ul>';
     const itemTemplate = item => `<li>${item.text}</li>`;

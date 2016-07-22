@@ -160,7 +160,9 @@ class ListView extends Backbone.View {
    */
   remove() {
     this.removed = true;
-    this.viewport && this.viewport.remove();
+    if (this.viewport) {
+      this.viewport.remove();
+    }
     super.remove();
   }
 
