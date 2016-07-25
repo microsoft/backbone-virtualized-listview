@@ -37,6 +37,20 @@
 				</ul>
 			</li>
 			
+			<li class="dropdown">
+				<a href="events.list.html" class="dropdown-toggle" data-toggle="dropdown">Events<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="ListView.html#event:didRedraw">ListView#event:didRedraw</a></li><li><a href="ListView.html#event:willRedraw">ListView#event:willRedraw</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="externals.list.html" class="dropdown-toggle" data-toggle="dropdown">Externals<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="external-BinaryIndexedTree.html">BinaryIndexedTree</a></li>
+				</ul>
+			</li>
+			
 		</ul>
 		<div class="col-sm-3 col-md-3">
             <form class="navbar-form" role="search">
@@ -72,7 +86,41 @@
         ListView
         </h2>
         
-            <div class="class-description"><p>The virtualized list view class.</p></div>
+            <div class="class-description"><p>The virtualized list view class.</p>
+<p>In addition to ordinary Backbone View options, the constructor also takes</p>
+<p><strong>model</strong>: the model object to render the skeleton of the list view.</p>
+<ul>
+<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
+</ul>
+<p><strong>listTemplate</strong>: the template to render the skeleton of the list view.</p>
+<ul>
+<li>By default, it would render a single <code>UL</code>.</li>
+<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
+<li><strong>Note</strong>: It must contain an empty element with class name
+<code>'list-container'</code>, as the parrent of all list items.</li>
+</ul>
+<p><strong>items</strong>: the model objects of the list items.</p>
+<ul>
+<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
+</ul>
+<p><strong>itemTemplate</strong>: the template to render a list item.</p>
+<ul>
+<li>By default, it would render a single <code>LI</code> filled with <code>item.text</code>.</li>
+<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
+<li><strong>Note</strong>: list items <strong>MUST NOT</strong> have outer margins, otherwise the layout
+calculation will be inaccurate.</li>
+</ul>
+<p><strong>defaultItemHeight</strong>: the estimated height of a single item.</p>
+<ul>
+<li>It's not necessary to be accurate. But the accurater it is, the less the
+scroll bar is adjusted overtime.</li>
+<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
+</ul>
+<p><strong>viewport</strong>: the CSS selector to locate the scrollable viewport.</p>
+<ul>
+<li>If it's omitted, the <code>window</code> will be used as the viewport.</li>
+<li>Cannot be reset by ListView#reset.</li>
+</ul></div>
         
     
 </header>
@@ -170,13 +218,13 @@
 
         <tr>
             
-                <td class="name"><code>listTemplate</code></td>
+                <td class="name"><code>model</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type">Object</span>
 
 
 
@@ -185,8 +233,6 @@
 
             
                 <td class="attributes">
-                
-                    &lt;optional><br>
                 
 
                 
@@ -201,23 +247,20 @@
                 </td>
             
 
-            <td class="description last"><p>The template of the list view.</p>
-<p>It must contain an empty element with class name <code>'list-container'</code>, as
-the parrent of all list items.</p>
-<p>By default, it would render a single <code>UL</code>.</p></td>
+            <td class="description last"></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>itemTemplate</code></td>
+                <td class="name"><code>listTemplate</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">function</span>
+<span class="param-type"><a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span>
 
 
 
@@ -242,10 +285,7 @@ the parrent of all list items.</p>
                 </td>
             
 
-            <td class="description last"><p>The template of the list items.</p>
-<p>Note: list items <strong>MUST NOT</strong> have outer margins, otherwise the layout
-calculation will be inaccurate.</p>
-<p>By default, it would render a single <code>LI</code> filled with <code>item.text</code>.</p></td>
+            <td class="description last"></td>
         </tr>
 
     
@@ -285,7 +325,45 @@ calculation will be inaccurate.</p>
                 </td>
             
 
-            <td class="description last"><p>The list data items.</p></td>
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>itemTemplate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="ListView.html#~cbItemTemplate">ListView~cbItemTemplate</a></span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
         </tr>
 
     
@@ -325,9 +403,7 @@ calculation will be inaccurate.</p>
                 </td>
             
 
-            <td class="description last"><p>The estimated height of a single item.</p>
-<p>It's not necessary to be accurate. But the accurater it is, the less
-the scroll bar is adjusted overtime.</p></td>
+            <td class="description last"></td>
         </tr>
 
     
@@ -365,8 +441,7 @@ the scroll bar is adjusted overtime.</p></td>
                 </td>
             
 
-            <td class="description last"><p>The CSS selector to locate the scrollable viewport.</p>
-<p>If it's omitted, the <code>window</code> will be used as the viewport.</p></td>
+            <td class="description last"></td>
         </tr>
 
     
@@ -450,6 +525,365 @@ the scroll bar is adjusted overtime.</p></td>
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<hr>
+<dt class="name" id="defaultItemHeight">
+    <h4><span class="type-signature"></span>defaultItemHeight<span class="type-signature"> :number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The default list item height.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">number</span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt class="name" id="itemHeights">
+    <h4><span class="type-signature"></span>itemHeights<span class="type-signature"> :<a href="external-BinaryIndexedTree.html">external:BinaryIndexedTree</a></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The BinaryIndexedTree to get the heights and accumulated heights of items.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type"><a href="external-BinaryIndexedTree.html">external:BinaryIndexedTree</a></span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt class="name" id="itemTemplate">
+    <h4><span class="type-signature"></span>itemTemplate<span class="type-signature"> :<a href="ListView.html#~cbItemTemplate">ListView~cbItemTemplate</a></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The template to render a list item.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type"><a href="ListView.html#~cbItemTemplate">ListView~cbItemTemplate</a></span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt class="name" id="length">
+    <h4><span class="type-signature"></span>length<span class="type-signature"> :number</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The total count of the items.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">number</span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt class="name" id="listTemplate">
+    <h4><span class="type-signature"></span>listTemplate<span class="type-signature"> :<a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The template to render the skeleton of the list view.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type"><a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        </dl>
     
 
     
@@ -544,7 +978,7 @@ the scroll bar is adjusted overtime.</p></td>
             
 <hr>
 <dt>
-    <h4 class="name" id="invalidate"><span class="type-signature"></span>invalidate()</h4>
+    <h4 class="name" id="invalidate"><span class="type-signature"></span>invalidate( [callback])</h4>
     
     
 </dt>
@@ -561,6 +995,68 @@ the scroll bar is adjusted overtime.</p></td>
     
 
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The callback to notify completion.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
     
 
     
@@ -614,6 +1110,154 @@ the scroll bar is adjusted overtime.</p></td>
     
 
     
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="itemAt"><span class="type-signature"></span>itemAt(index)</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Get the item at certain index.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>index</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The index of the item.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+
+    </dd>
+</dl>
+
+
+        
 
     
 </dd>
@@ -700,7 +1344,7 @@ the scroll bar is adjusted overtime.</p></td>
             
 <hr>
 <dt>
-    <h4 class="name" id="render"><span class="type-signature"></span>render()</h4>
+    <h4 class="name" id="render"><span class="type-signature"></span>render( [callback])</h4>
     
     
 </dt>
@@ -717,6 +1361,68 @@ the scroll bar is adjusted overtime.</p></td>
     
 
     
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The callback to notify completion.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
     
 
     
@@ -778,7 +1484,7 @@ the scroll bar is adjusted overtime.</p></td>
             
 <hr>
 <dt>
-    <h4 class="name" id="reset"><span class="type-signature"></span>reset(options)</h4>
+    <h4 class="name" id="reset"><span class="type-signature"></span>reset(options [, callback])</h4>
     
     
 </dt>
@@ -786,7 +1492,16 @@ the scroll bar is adjusted overtime.</p></td>
 
     
     <div class="description">
-        <p>Reset the items and defaultItemHeight.</p>
+        <p>Reset the list view options. The following options can be reset</p>
+<ul>
+<li>model</li>
+<li>listTemplate</li>
+<li>items</li>
+<li>itemTemplate</li>
+<li>defaultItemHeight</li>
+<li>events</li>
+</ul>
+<p>Refer to <a href="ListView.html">ListView</a> for detail.</p>
     </div>
     
 
@@ -808,6 +1523,8 @@ the scroll bar is adjusted overtime.</p></td>
 
         <th>Type</th>
 
+        
+        <th>Argument</th>
         
 
         
@@ -835,44 +1552,31 @@ the scroll bar is adjusted overtime.</p></td>
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last">
-                <h6 class="method-params-label method-subparams-label">Properties</h6>
-                
+            <td class="description last"><p>The new options.</p></td>
+        </tr>
 
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Argument</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>items</code></td>
+                <td class="name"><code>callback</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;Object></span>
+<span class="param-type">function</span>
 
 
 
@@ -893,48 +1597,7 @@ the scroll bar is adjusted overtime.</p></td>
 
             
 
-            <td class="description last"><p>The new data items.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>defaultItemHeight</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>The new estimated item height.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-            </td>
+            <td class="description last"><p>The callback to notify completion.</p></td>
         </tr>
 
     
@@ -1002,7 +1665,7 @@ the scroll bar is adjusted overtime.</p></td>
             
 <hr>
 <dt>
-    <h4 class="name" id="scrollToItem"><span class="type-signature"></span>scrollToItem(index [, position])</h4>
+    <h4 class="name" id="scrollToItem"><span class="type-signature"></span>scrollToItem(index [, position] [, callback])</h4>
     
     
 </dt>
@@ -1121,7 +1784,45 @@ the scroll bar is adjusted overtime.</p></td>
                 </td>
             
 
-            <td class="description last"><p>The position of the item.</p>
+            <td class="description last"><p>The position of the item.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The callback to notify completion.</p>
 <p>The valid positions are</p>
 <ul>
 <li><code>'default'</code>, if the item is above the viewport top, scroll it to the
@@ -1195,11 +1896,17 @@ otherwise, keep the viewport unchanged.</li>
     
 </dd>
 
-        
-            
+        </dl>
+    
+
+    
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        <dl>
+                
 <hr>
 <dt>
-    <h4 class="name" id="setDefaultItemHeight"><span class="type-signature"></span>setDefaultItemHeight(defaultItemHeight)</h4>
+    <h4 class="name" id="~cbItemTemplate"><span class="type-signature"></span>cbItemTemplate(item)</h4>
     
     
 </dt>
@@ -1207,7 +1914,7 @@ otherwise, keep the viewport unchanged.</li>
 
     
     <div class="description">
-        <p>Reset the estimated item height.</p>
+        <p>The template to render a list item.</p>
     </div>
     
 
@@ -1242,13 +1949,13 @@ otherwise, keep the viewport unchanged.</li>
 
         <tr>
             
-                <td class="name"><code>defaultItemHeight</code></td>
+                <td class="name"><code>item</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">number</span>
+<span class="param-type">Object</span>
 
 
 
@@ -1259,7 +1966,7 @@ otherwise, keep the viewport unchanged.</li>
 
             
 
-            <td class="description last"><p>The new estimated item height.</p></td>
+            <td class="description last"><p>The model object of the item</p></td>
         </tr>
 
     
@@ -1323,11 +2030,11 @@ otherwise, keep the viewport unchanged.</li>
     
 </dd>
 
-        
             
+                
 <hr>
 <dt>
-    <h4 class="name" id="setItems"><span class="type-signature"></span>setItems(items)</h4>
+    <h4 class="name" id="~cbListTemplate"><span class="type-signature"></span>cbListTemplate(model)</h4>
     
     
 </dt>
@@ -1335,7 +2042,7 @@ otherwise, keep the viewport unchanged.</li>
 
     
     <div class="description">
-        <p>Reset the items. Short-cut for <code>listView.reset({ items })</code>.</p>
+        <p>The template to render the skeleton of the list view.</p>
     </div>
     
 
@@ -1370,13 +2077,13 @@ otherwise, keep the viewport unchanged.</li>
 
         <tr>
             
-                <td class="name"><code>items</code></td>
+                <td class="name"><code>model</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;Object></span>
+<span class="param-type">Object</span>
 
 
 
@@ -1387,13 +2094,175 @@ otherwise, keep the viewport unchanged.</li>
 
             
 
-            <td class="description last"><p>The new data items.</p></td>
+            <td class="description last"><p>The model object of the list view.</p></td>
         </tr>
 
     
     </tbody>
 </table>
 
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+            </dl>
+    
+
+    
+        <h3 class="subsection-title">Events</h3>
+
+        <dl>
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:didRedraw">didRedraw</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>The event indicates the list view have completed redraw.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="event:willRedraw">willRedraw</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>The event indicates the list will start redraw.</p>
+    </div>
+    
+
+    
+
+    
+
+    
     
 
     
@@ -1453,10 +2322,6 @@ otherwise, keep the viewport unchanged.</li>
 
         </dl>
     
-
-    
-
-    
 </article>
 
 </section>
@@ -1499,7 +2364,7 @@ otherwise, keep the viewport unchanged.</li>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on 2016-07-15T19:20:42+08:00
+		on 2016-07-26T00:13:22+08:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
