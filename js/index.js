@@ -206,6 +206,10 @@ class ListView extends Backbone.View {
     const { viewport, itemHeights, $container } = this;
     let { indexFirst, indexLast, anchor } = this;
 
+    /**
+     * The event indicates the list will start redraw.
+     * @event ListView#willRedraw
+     */
     this.trigger('willRedraw');
 
     whileTrue(() => {
@@ -325,6 +329,10 @@ class ListView extends Backbone.View {
     this.indexLast = indexLast;
     this.anchor = null;
 
+    /**
+     * The event indicates the list view have completed redraw.
+     * @event ListView#didRedraw
+     */
     this.trigger('didRedraw');
   }
 
