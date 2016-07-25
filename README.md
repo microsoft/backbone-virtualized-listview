@@ -6,9 +6,9 @@
 > Backbone list view with virtualization support
 
 UI virtualization is essential to your Web UI performance in case you have
-thousands of data item to render. *The idea is to skip rendering the off
-screen items and replace them with paddings. You need to handle the scroll
-and resize events to adjust the DOM content.*
+thousands of data item to render. *The idea is to skip rendering the off screen
+items and replace them with filler blocks. You need to handle the scroll and
+resize events to adjust the DOM content.*
 
 The principle is straight forward, but the implementation is fussy. This
 [Backbone][backbonejs] based implementation is aiming to create a general

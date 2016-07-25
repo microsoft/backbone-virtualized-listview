@@ -32,8 +32,10 @@ const INVALIDATION_ALL = 0xf;
  *
  *  * By default, it would render a single `UL`.
  *  * Can be reset by {@link ListView#reset}
- *  * __Note__: It must contain an empty element with class name
- *    `'list-container'`, as the parrent of all list items.
+ *  * __Note__: It must contain the following elements with specified class name
+ *    * `'top-filler'`: The filler block on top.
+ *    * `'list-container'`: The parrent of all list items.
+ *    * `'bottom-filler'`: The filler block at bottom.
  *
  * __items__: the model objects of the list items.
  *
@@ -52,6 +54,10 @@ const INVALIDATION_ALL = 0xf;
  *    scroll bar is adjusted overtime.
  *  * Can be reset by {@link ListView#reset}
  *
+ * __virtualized__: whether or not the virtualization is enabled.
+ *
+ *  * Cannot be reset by ListView#reset.
+ *
  * __viewport__: the CSS selector to locate the scrollable viewport.
  *
  *  * If it's omitted, the `window` will be used as the viewport.
@@ -63,6 +69,7 @@ const INVALIDATION_ALL = 0xf;
  * @param {Object[]} [options.items=[]]
  * @param {ListView~cbItemTemplate} [options.itemTemplate]
  * @param {number} [options.defaultItemHeight=20]
+ * @param {boolean} [options.virtualized=true]
  * @param {string} [options.viewport]
  *
  */
