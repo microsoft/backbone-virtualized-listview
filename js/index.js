@@ -83,6 +83,7 @@ class ListView extends Backbone.View {
     itemTemplate = defaultItemTemplate,
     defaultItemHeight = 20,
 
+    virtualized = true,
     viewport = null,
   } = {}) {
     this.options = {
@@ -94,6 +95,8 @@ class ListView extends Backbone.View {
       itemTemplate,
       defaultItemHeight,
     };
+
+    this.virtualized = virtualized;
 
     // States
     this.indexFirst = 0;
@@ -118,31 +121,33 @@ class ListView extends Backbone.View {
     })();
 
     this._hookUpViewport = () => {
-      let blockUntil = 0;
-
-      const onViewportChange = () => {
-        if (performance.now() > blockUntil) {
-          this._scheduleRedraw();
-        } else if (!this.removed) {
-          // If the scroll events are blocked, we shouldn't just swallow them.
-          // Wait for 0.1 second and give another try.
-          window.setTimeout(onViewportChange, 100);
-        }
-      };
-
       this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
 
-      this.viewport.on('change', onViewportChange);
+      if (this.virtualized) {
+        let blockUntil = 0;
 
-      //
-      // On keypress, we want to block the scroll events for 0.2 second to wait
-      // for the animation to complete. Otherwise, the scroll would change the
-      // geometry metrics and break the animation. The worst thing we may get is,
-      // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
-      //
-      this.viewport.on('keypress', () => {
-        blockUntil = performance.now() + 200;
-      });
+        const onViewportChange = () => {
+          if (performance.now() > blockUntil) {
+            this._scheduleRedraw();
+          } else if (!this.removed) {
+            // If the scroll events are blocked, we shouldn't just swallow them.
+            // Wait for 0.1 second and give another try.
+            window.setTimeout(onViewportChange, 100);
+          }
+        };
+
+        this.viewport.on('change', onViewportChange);
+
+        //
+        // On keypress, we want to block the scroll events for 0.2 second to wait
+        // for the animation to complete. Otherwise, the scroll would change the
+        // geometry metrics and break the animation. The worst thing we may get is,
+        // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
+        //
+        this.viewport.on('keypress', () => {
+          blockUntil = performance.now() + 200;
+        });
+      }
     };
   }
 
@@ -203,7 +208,7 @@ class ListView extends Backbone.View {
   _redraw() {
     let invalidateItems = this._processInvalidation();
     const { items, itemTemplate } = this.options;
-    const { viewport, itemHeights, $container } = this;
+    const { viewport, itemHeights, $container, virtualized } = this;
     let { indexFirst, indexLast, anchor } = this;
 
     /**
@@ -228,8 +233,8 @@ class ListView extends Backbone.View {
         const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : listTopCur;
         const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
         const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
-        const renderFirst = Math.max(targetFirst - 10, 0);
-        const renderLast = Math.min(targetLast + 10, items.length);
+        const renderFirst = virtualized ? Math.max(targetFirst - 10, 0) : 0;
+        const renderLast = virtualized ? Math.min(targetLast + 10, items.length) : items.length;
 
         let renderMore = false;
 

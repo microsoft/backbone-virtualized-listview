@@ -16,6 +16,8 @@ const expect = chai.expect;
 const redrawInterval = 100;
 
 describe('ListView', function () {
+  let listView = null;
+
   beforeEach(function () {
     $('body').html(template(this.currentTest));
   });
@@ -30,7 +32,6 @@ describe('ListView', function () {
 
   describe('Properties', function () {
     const count = 20000;
-    let listView = null;
 
     const model = { title: 'Test Properties' };
     const listTemplate = testListTemplate;
@@ -81,7 +82,6 @@ describe('ListView', function () {
 
   describe('Handling viewport events', function () {
     const count = 20000;
-    let listView = null;
 
     beforeEach(doAsync(async () => {
       listView = new ListView({
@@ -125,10 +125,77 @@ describe('ListView', function () {
     }));
   });
 
+  function viewportMetrics() {
+    return listView.viewport.getMetrics();
+  }
+
+  function checkViewportFillup() {
+    const items = $('.test-container > ul > li');
+    const [rectFirst, rectLast] = [
+      items.first(),
+      items.last(),
+    ].map($el => $el.get(0).getBoundingClientRect());
+    const { top, bottom } = viewportMetrics().outer;
+
+    if (listView.indexFirst > 0) {
+      expect(rectFirst.top).to.be.at.most(top);
+    }
+    if (listView.indexLast < listView.options.items.length) {
+      expect(rectLast.bottom).to.be.at.least(bottom);
+    }
+
+    return null;
+  }
+
+  function getElementRect(index) {
+    expect(index).to.be.at.least(listView.indexFirst);
+    expect(index).to.be.below(listView.indexLast);
+
+    const el = $('.test-container > ul > li').get(index - listView.indexFirst);
+    return el.getBoundingClientRect();
+  }
+
+  function checkItemLocation(index, position) {
+    const rect = getElementRect(index);
+    const { top, bottom } = viewportMetrics().outer;
+    const middle = (top + bottom) / 2;
+
+    if (position === 'top') {
+      expect(Math.abs(rect.top - top)).to.be.below(1);
+    } else if (position === 'bottom') {
+      expect(Math.abs(rect.bottom - bottom)).to.be.below(1);
+    } else if (position === 'middle') {
+      const elMiddle = (rect.top + rect.bottom) / 2;
+      expect(Math.abs(elMiddle - middle)).to.be.below(1);
+    } else if (_.isNumber(position)) {
+      expect(Math.abs(rect.top - (top + position))).to.be.below(1);
+    }
+  }
+
+  function checkScrolledToTop() {
+    const scrollTop = listView.viewport.getMetrics().scroll.y;
+
+    expect(Math.abs(scrollTop)).to.be.at.most(1);
+  }
+
+  function checkScrolledToBottom() {
+    const metrics = viewportMetrics();
+    const scrollTopMax = metrics.inner.height - metrics.outer.height;
+    const scrollTop = metrics.scroll.y;
+
+    expect(scrollTop).to.be.at.least(scrollTopMax - 1);
+  }
+
+  function scrollToItem(...args) {
+    return new Promise(resolve => listView.scrollToItem(...(args.concat([resolve]))));
+  }
+
+  function reset(options) {
+    return new Promise(resolve => listView.reset(options, resolve));
+  }
+
   function getTestCases(viewFactory) {
     return function () {
-      let listView = null;
-
       beforeEach(doAsync(async () => {
         listView = viewFactory({ size: 20000 });
         listView.render();
@@ -140,75 +207,6 @@ describe('ListView', function () {
         listView.remove();
         await sleep(redrawInterval);
       }));
-
-      function viewportMetrics() {
-        return listView.viewport.getMetrics();
-      }
-
-      function checkViewportFillup() {
-        const items = $('.test-container > ul > li');
-        const [rectFirst, rectLast] = [
-          items.first(),
-          items.last(),
-        ].map($el => $el.get(0).getBoundingClientRect());
-        const { top, bottom } = viewportMetrics().outer;
-
-        if (listView.indexFirst > 0) {
-          expect(rectFirst.top).to.be.at.most(top);
-        }
-        if (listView.indexLast < listView.options.items.length) {
-          expect(rectLast.bottom).to.be.at.least(bottom);
-        }
-
-        return null;
-      }
-
-      function getElementRect(index) {
-        expect(index).to.be.at.least(listView.indexFirst);
-        expect(index).to.be.below(listView.indexLast);
-
-        const el = $('.test-container > ul > li').get(index - listView.indexFirst);
-        return el.getBoundingClientRect();
-      }
-
-      function checkItemLocation(index, position) {
-        const rect = getElementRect(index);
-        const { top, bottom } = viewportMetrics().outer;
-        const middle = (top + bottom) / 2;
-
-        if (position === 'top') {
-          expect(Math.abs(rect.top - top)).to.be.below(1);
-        } else if (position === 'bottom') {
-          expect(Math.abs(rect.bottom - bottom)).to.be.below(1);
-        } else if (position === 'middle') {
-          const elMiddle = (rect.top + rect.bottom) / 2;
-          expect(Math.abs(elMiddle - middle)).to.be.below(1);
-        } else if (_.isNumber(position)) {
-          expect(Math.abs(rect.top - (top + position))).to.be.below(1);
-        }
-      }
-
-      function checkScrolledToTop() {
-        const scrollTop = listView.viewport.getMetrics().scroll.y;
-
-        expect(Math.abs(scrollTop)).to.be.at.most(1);
-      }
-
-      function checkScrolledToBottom() {
-        const metrics = viewportMetrics();
-        const scrollTopMax = metrics.inner.height - metrics.outer.height;
-        const scrollTop = metrics.scroll.y;
-
-        expect(scrollTop).to.be.at.least(scrollTopMax - 1);
-      }
-
-      function scrollToItem(...args) {
-        return new Promise(resolve => listView.scrollToItem(...(args.concat([resolve]))));
-      }
-
-      function reset(options) {
-        return new Promise(resolve => listView.reset(options, resolve));
-      }
 
       it('should create the ListView correctly', function () {
         expect($('.test-container').get(0)).to.equal(listView.el);
@@ -468,4 +466,105 @@ describe('ListView', function () {
       })),
     });
   }));
+
+  describe('Non-virtualized list view', function () {
+    const count = 500;
+
+    beforeEach(function (done) {
+      listView = new ListView({
+        el: '.test-container',
+        items: _.map(_.range(count), i => ({ text: i })),
+        virtualized: false,
+      });
+      listView.render(done);
+    });
+
+    afterEach(doAsync(async () => {
+      listView.remove();
+      await sleep(redrawInterval);
+    }));
+
+    async function checkDOMUnchanged(action) {
+      const $ul = $('.test-container > ul');
+      const elFirst = $ul.children().first().get(0);
+      const elLast = $ul.children().last().get(0);
+
+      await action(function () {
+        const $ulNew = $('.test-container > ul');
+        const elFirstNew = $ulNew.children().get(0);
+        const elLastNew = $ulNew.children().last().get(0);
+
+        expect($ulNew.get(0)).to.equal($ul.get(0));
+        expect(elFirstNew).to.equal(elFirst);
+        expect(elLastNew).to.equal(elLast);
+      });
+    }
+
+    it('should render all items initially', function () {
+      const $ul = $('.test-container > ul');
+
+      expect($ul.children().length).to.equal(count);
+      expect($ul.children().first().text()).to.equal('0');
+    });
+
+    it('should keep the DOM unchanged after scrolling', doAsync(
+      async () => checkDOMUnchanged(async verify => {
+        for (let scrollTop of [100, 1000, 5000, 3000]) {
+          listView.viewport.scrollTo({ y: scrollTop });
+          await sleep(redrawInterval);
+          verify();
+        }
+
+        for (let scrollTop = 1000; scrollTop < 1500; scrollTop += 100) {
+          listView.viewport.scrollTo({ y: scrollTop });
+          await sleep(redrawInterval);
+          verify();
+        }
+
+        for (let scrollTop = 2000; scrollTop > 1500; scrollTop -= 100) {
+          listView.viewport.scrollTo({ y: scrollTop });
+          await sleep(redrawInterval);
+          verify();
+        }
+      })
+    ));
+
+    it('should keep the DOM unchanged after scrolling to item', doAsync(
+      async () => checkDOMUnchanged(async verify => {
+        for (let index of [0, 1, 11, 111]) {
+          await scrollToItem(index, 'top');
+          verify();
+          checkItemLocation(index, 'top');
+        }
+
+        for (let index of [111, 110, 100]) {
+          await scrollToItem(index, 'bottom');
+          verify();
+          checkItemLocation(index, 'bottom');
+        }
+
+        for (let index of [111, 110, 100]) {
+          await scrollToItem(index, 'middle');
+          verify();
+          checkItemLocation(index, 'middle');
+        }
+
+        await scrollToItem(0, 'bottom');
+        verify();
+        checkScrolledToTop();
+
+        await scrollToItem(listView.length - 1, 'top');
+        verify();
+        checkScrolledToBottom();
+
+        await scrollToItem(0, 'middle');
+        verify();
+        checkScrolledToTop();
+
+        await scrollToItem(listView.length - 1, 'middle');
+        verify();
+        checkScrolledToBottom();
+      })
+    ));
+  });
 });
