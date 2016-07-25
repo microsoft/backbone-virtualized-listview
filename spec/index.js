@@ -367,6 +367,22 @@ describe('ListView', function () {
         expect($ul.children().length).to.equal(0);
       }));
 
+      it('should be able to use duck typed array as items', doAsync(async () => {
+        const $ul = $('.test-container > ul');
+        const prefix = 'item';
+
+        await reset({
+          items: {
+            length: 50000,
+            slice(start, stop) {
+              return _.map(_.range(start, stop), i => ({ text: `${prefix} ${i}` }));
+            },
+          },
+        });
+        expect($ul.children().first().text()).to.equal(`${prefix} 0`);
+        checkViewportFillup();
+      }));
+
       it('should be able to reset the model and listTemplate', doAsync(async () => {
         const title = 'New Template';
         const model = { title };
