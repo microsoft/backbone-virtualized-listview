@@ -106,7 +106,7 @@ class ListView extends Backbone.View {
       let requestId = null;
 
       return () => {
-        if (!requestId) {
+        if (this.viewport && !requestId) {
           requestId = window.requestAnimationFrame(() => {
             requestId = null;
             if (!this.removed) {
@@ -334,7 +334,7 @@ class ListView extends Backbone.View {
    * @return {Object}
    */
   itemAt(index) {
-    return this.options.items[index];
+    return _.first(this.options.items.slice(index, index + 1));
   }
 
   /**
