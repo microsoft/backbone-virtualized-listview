@@ -409,6 +409,8 @@ class ListView extends Backbone.View {
    * __events__: The events hash in form of `{ "event selector": callback }`.
    *
    *  * Refer to {@link http://backbonejs.org/#View-events|Backbone.View~events}
+   *  * In addition to the DOM events, it can also handle the `'willRedraw'` and
+   *    `'didRedraw'` events of the list view.
    *  * __Note__: The callback __MUST__ be a function. Member function names are
    *    not supported.
    *
@@ -482,7 +484,6 @@ class ListView extends Backbone.View {
    * Scroll to a certain item.
    * @param {number} index The index of the item.
    * @param {string|number} [position='default'] The position of the item.
-   * @param {function} [callback] The callback to notify completion.
    *
    * The valid positions are
    *   * `'default'`, if the item is above the viewport top, scroll it to the
@@ -492,6 +493,9 @@ class ListView extends Backbone.View {
    *   * `'middle'`, scroll the item to the vertical center of the viewport.
    *   * `'bottom'`, scroll the item to the bottom of the viewport.
    *   * `{number}`, scroll the item to the given offset from the viewport top.
+   *
+   * @param {function} [callback] The callback to notify completion.
+   *
    */
   scrollToItem(...args) {
     if (!this.$container) {
