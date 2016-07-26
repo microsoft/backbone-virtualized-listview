@@ -41,6 +41,7 @@ describe('ListView', function () {
     beforeEach(doAsync(async () => {
       listView = new ListView({
         el: '.test-container',
+      }).set({
         items: _.map(_.range(count), i => ({ text: i })),
         listTemplate,
         model,
@@ -86,9 +87,9 @@ describe('ListView', function () {
     beforeEach(doAsync(async () => {
       listView = new ListView({
         el: '.test-container',
+      }).set({
         items: _.map(_.range(count), i => ({ text: i })),
-      });
-      listView.render();
+      }).render();
       listView.viewport.scrollTo({ y: 0 });
       await sleep(redrawInterval);
     }));
@@ -190,8 +191,8 @@ describe('ListView', function () {
     return new Promise(resolve => listView.scrollToItem(...(args.concat([resolve]))));
   }
 
-  function reset(options) {
-    return new Promise(resolve => listView.reset(options, resolve));
+  function set(options) {
+    return new Promise(resolve => listView.set(options, resolve));
   }
 
   function getTestCases(viewFactory) {
@@ -348,7 +349,7 @@ describe('ListView', function () {
 
       it('should be able to reset the defaultItemHeight', doAsync(async () => {
         const height = viewportMetrics().inner.height;
-        await reset({ defaultItemHeight: 22 });
+        await set({ defaultItemHeight: 22 });
         expect(viewportMetrics().inner.height).to.be.above(height);
       }));
 
@@ -356,11 +357,11 @@ describe('ListView', function () {
         const $ul = $('.test-container > ul');
         const text = 'hello world!';
 
-        await reset({ items: [{ text }] });
+        await set({ items: [{ text }] });
         expect($ul.children().length).to.equal(1);
         expect($ul.children().text()).to.equal(text);
 
-        await reset({ items: [] });
+        await set({ items: [] });
         expect($ul.length).to.equal(1);
         expect($ul.children().length).to.equal(0);
       }));
@@ -369,7 +370,7 @@ describe('ListView', function () {
         const $ul = $('.test-container > ul');
         const prefix = 'item';
 
-        await reset({
+        await set({
           items: {
             length: 50000,
             slice(start, stop) {
@@ -386,7 +387,7 @@ describe('ListView', function () {
         const model = { title };
         const listTemplate = testListTemplate;
 
-        await reset({ model, listTemplate });
+        await set({ model, listTemplate });
 
         const $h2 = $('.test-container > h2');
         expect($h2.length).to.equal(1);
@@ -398,7 +399,7 @@ describe('ListView', function () {
         const prefix = 'item';
         const itemTemplate = ({ text }) => `<li>${prefix} - ${text}</li>`;
 
-        await reset({ itemTemplate });
+        await set({ itemTemplate });
 
         const $ul = $('.test-container > ul');
         expect($ul.children().length).to.be.at.least(1);
@@ -410,7 +411,7 @@ describe('ListView', function () {
         const spy = sinon.spy();
         const events = { 'click li': spy };
 
-        await reset({ events });
+        await set({ events });
 
         const $ul = $('.test-container > ul');
         $ul.children().first().click();
@@ -420,7 +421,7 @@ describe('ListView', function () {
       it('should invoke the callback immediatedly if reset with no valid options', function () {
         const spy = sinon.spy();
 
-        listView.reset({ foo: 'bar' }, spy);
+        listView.set({ foo: 'bar' }, spy);
         expect(spy).to.be.calledOnce;
       });
 
@@ -438,6 +439,7 @@ describe('ListView', function () {
 
   describe('with WindowViewport', getTestCases(({ size }) => new ListView({
     el: '.test-container',
+  }).set({
     items: _.map(_.range(size), i => ({ text: i })),
   })));
 
@@ -449,6 +451,7 @@ describe('ListView', function () {
     return new ListView({
       el: '.test-container',
       viewport: '.test-container',
+    }).set({
       items: _.map(_.range(size), i => ({ text: i })),
     });
   }));
@@ -461,6 +464,7 @@ describe('ListView', function () {
     return new ListView({
       el: '.test-container',
       viewport: '.test-container',
+    }).set({
       items: _.map(_.range(size), i => ({
         text: `${i}: ${_.map(_.range(_.random(50)), () => _.random(9)).join('')}`,
       })),
@@ -473,8 +477,9 @@ describe('ListView', function () {
     beforeEach(function (done) {
       listView = new ListView({
         el: '.test-container',
-        items: _.map(_.range(count), i => ({ text: i })),
         virtualized: false,
+      }).set({
+        items: _.map(_.range(count), i => ({ text: i })),
       });
       listView.render(done);
     });

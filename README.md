@@ -31,9 +31,9 @@ the helper.
 Refer to the [document][docs-scroll-to-item] for detail.
 
 ### Handling data change
-When data is changed, you can update the view with the `reset` method.
+When data is changed, you can update the view with the `set` method.
 
-Refer to the [document][docs-reset] for detail.
+Refer to the [document][docs-set] for detail.
 
 ## Installation
 ```bash
@@ -55,6 +55,7 @@ import itemTemplate from 'my-item-template.jade';
 
 const listView = new ListView({
   el: '.container',
+}).set({
   items: _.map(_.range(2000), i => { text: i }),
   listTemplate,
   itemTemplate,
@@ -77,7 +78,7 @@ or contact [opencode@microsoft.com][ms-mailto] with any additional questions or 
 [docs]: https://microsoft.github.io/backbone-virtualized-listview/
 [docs-list-view]: https://microsoft.github.io/backbone-virtualized-listview/ListView.html
 [docs-scroll-to-item]: https://microsoft.github.io/backbone-virtualized-listview/ListView.html#scrollToItem__anchor
-[docs-reset]: https://microsoft.github.io/backbone-virtualized-listview/ListView.html#reset__anchor
+[docs-set]: https://microsoft.github.io/backbone-virtualized-listview/ListView.html#set__anchor
 
 [ms-code-of-conduct]: https://opensource.microsoft.com/codeofconduct/
 [ms-code-of-conduct-faq]: https://opensource.microsoft.com/codeofconduct/faq/

@@ -24,51 +24,13 @@ const INVALIDATION_ALL = 0xf;
  *
  * In addition to ordinary Backbone View options, the constructor also takes
  *
- * __model__: the model object to render the skeleton of the list view.
- *
- *  * Can be reset by {@link ListView#reset}
- *
- * __listTemplate__: the template to render the skeleton of the list view.
- *
- *  * By default, it would render a single `UL`.
- *  * Can be reset by {@link ListView#reset}
- *  * __Note__: It must contain the following elements with specified class name
- *    * `'top-filler'`: The filler block on top.
- *    * `'list-container'`: The parrent of all list items.
- *    * `'bottom-filler'`: The filler block at bottom.
- *
- * __items__: the model objects of the list items.
- *
- *  * Can be reset by {@link ListView#reset}
- *
- * __itemTemplate__: the template to render a list item.
- *
- *  * By default, it would render a single `LI` filled with `item.text`.
- *  * Can be reset by {@link ListView#reset}
- *  * __Note__: list items __MUST NOT__ have outer margins, otherwise the layout
- *    calculation will be inaccurate.
- *
- * __defaultItemHeight__: the estimated height of a single item.
- *
- *  * It's not necessary to be accurate. But the accurater it is, the less the
- *    scroll bar is adjusted overtime.
- *  * Can be reset by {@link ListView#reset}
- *
  * __virtualized__: whether or not the virtualization is enabled.
- *
- *  * Cannot be reset by ListView#reset.
  *
  * __viewport__: the CSS selector to locate the scrollable viewport.
  *
  *  * If it's omitted, the `window` will be used as the viewport.
- *  * Cannot be reset by ListView#reset.
  *
  * @param {Object} options The constructor options.
- * @param {Object} options.model
- * @param {ListView~cbListTemplate} [options.listTemplate]
- * @param {Object[]} [options.items=[]]
- * @param {ListView~cbItemTemplate} [options.itemTemplate]
- * @param {number} [options.defaultItemHeight=20]
  * @param {boolean} [options.virtualized=true]
  * @param {string} [options.viewport]
  *
@@ -82,25 +44,16 @@ class ListView extends Backbone.View {
    *
    */
   initialize({
-    model = {},
-    listTemplate = defaultListTemplate,
-    events = {},
-
-    items = [],
-    itemTemplate = defaultItemTemplate,
-    defaultItemHeight = 20,
-
     virtualized = true,
     viewport = null,
   } = {}) {
     this.options = {
-      model,
-      listTemplate,
-      events,
-
-      items,
-      itemTemplate,
-      defaultItemHeight,
+      model: {},
+      listTemplate: defaultListTemplate,
+      events: {},
+      items: [],
+      itemTemplate: defaultItemTemplate,
+      defaultItemHeight: 20,
     };
 
     this.virtualized = virtualized;
@@ -366,6 +319,14 @@ class ListView extends Backbone.View {
   }
 
   /**
+   * The model object to render the skeleton of the list view.
+   * @type {Object}
+   */
+  get model() {
+    return this.options.model;
+  }
+
+  /**
    * The template to render the skeleton of the list view.
    * @callback ListView~cbListTemplate
    * @param {Object} model The model object of the list view.
@@ -422,21 +383,50 @@ class ListView extends Backbone.View {
   }
 
   /**
-   * Reset the list view options. The following options can be reset
+   * Set the list view options. The following options can be set
    *
-   *  * model
-   *  * listTemplate
-   *  * items
-   *  * itemTemplate
-   *  * defaultItemHeight
-   *  * events
+   * __model__: The model object to render the skeleton of the list view.
+   *
+   * __listTemplate__: The template to render the skeleton of the list view.
+   *
+   *  * By default, it would render a single `UL`.
+   *  * __Note__: It must contain the following elements with specified class name
+   *    * `'top-filler'`: The filler block on top.
+   *    * `'list-container'`: The parrent of all list items.
+   *    * `'bottom-filler'`: The filler block at bottom.
+   *
+   * __events__: The events hash in form of `{ "event selector": callback }`.
+   *
+   *  * Refer to {@link http://backbonejs.org/#View-events|Backbone.View~events}
+   *  * __Note__: The callback __MUST__ be a function. Member function names are
+   *    not supported.
+   *
+   * __items__: The model objects of the list items.
+   *
+   * __itemTemplate__: The template to render a list item.
+   *
+   *  * By default, it would render a single `LI` filled with `item.text`.
+   *  * __Note__: list items __MUST NOT__ have outer margins, otherwise the layout
+   *    calculation will be inaccurate.
+   *
+   * __defaultItemHeight__: The estimated height of a single item.
+   *
+   *  * It's not necessary to be accurate. But the accurater it is, the less the
+   *    scroll bar is adjusted overtime.
    *
    * Refer to {@link ListView} for detail.
    *
    * @param {Object} options The new options.
+   * @param {Object} options.model
+   * @param {ListView~cbListTemplate} [options.listTemplate]
+   * @param {Object} options.events
+   * @param {Object[]} [options.items=[]]
+   * @param {ListView~cbItemTemplate} [options.itemTemplate]
+   * @param {number} [options.defaultItemHeight=20]
    * @param {function} [callback] The callback to notify completion.
+   * @return {ListView} The list view itself.
    */
-  reset(options = {}, callback = _.noop) {
+  set(options = {}, callback = _.noop) {
     const isSet = key => _.has(options, key);
 
     _.extend(this.options, options);
@@ -458,6 +448,8 @@ class ListView extends Backbone.View {
     } else if (_.isFunction(callback)) {
       callback();
     }
+
+    return this;
   }
 
   _invalidate(invalidation) {
