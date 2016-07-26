@@ -60,12 +60,14 @@ class ListView extends Backbone.View {
     this.virtualized = virtualized;
 
     // States
-    this.indexFirst = 0;
-    this.indexLast = 0;
-    this.anchor = null;
-    this.invalidation = INVALIDATION_NONE;
-    this.removed = false;
-    this.eventsListView = {};
+    this._state = {
+      indexFirst: 0,
+      indexLast: 0,
+      anchor: null,
+      invalidation: INVALIDATION_NONE,
+      removed: false,
+      eventsListView: {},
+    };
 
     this._scheduleRedraw = (() => {
       let requestId = null;
@@ -74,7 +76,7 @@ class ListView extends Backbone.View {
         if (this.viewport && !requestId) {
           requestId = window.requestAnimationFrame(() => {
             requestId = null;
-            if (!this.removed) {
+            if (!this._state.removed) {
               this._redraw();
             }
           });
@@ -91,7 +93,7 @@ class ListView extends Backbone.View {
         const onViewportChange = () => {
           if (performance.now() > blockUntil) {
             this._scheduleRedraw();
-          } else if (!this.removed) {
+          } else if (!this._state.removed) {
             // If the scroll events are blocked, we shouldn't just swallow them.
             // Wait for 0.1 second and give another try.
             window.setTimeout(onViewportChange, 100);
@@ -117,7 +119,7 @@ class ListView extends Backbone.View {
    * Remove the view and unregister the event listeners.
    */
   remove() {
-    this.removed = true;
+    this._state.removed = true;
     if (this.viewport) {
       this.viewport.remove();
     }
@@ -133,19 +135,20 @@ class ListView extends Backbone.View {
 
   _processInvalidation() {
     const { items, events, listTemplate, model } = this.options;
+    const { invalidation } = this._state;
     const eventsDOM = _.omit(events, LIST_VIEW_EVENTS);
     const eventsListView = _.pick(events, LIST_VIEW_EVENTS);
 
-    if (this.invalidation & INVALIDATION_EVENTS) {
+    if (invalidation & INVALIDATION_EVENTS) {
       this.undelegateEvents();
-      _.each(this.eventsListView || {}, (handler, event) => {
+      _.each(this._state.eventsListView || {}, (handler, event) => {
         this.off(event, handler);
       });
     }
-    if (this.invalidation & INVALIDATION_ITEMS) {
+    if (invalidation & INVALIDATION_ITEMS) {
       this._itemHeights = null;
     }
-    if (this.invalidation & INVALIDATION_LIST) {
+    if (invalidation & INVALIDATION_LIST) {
       this.$el.html(listTemplate(model));
       this.$container = this.$('.list-container');
       this.$container.css({
@@ -160,18 +163,18 @@ class ListView extends Backbone.View {
         paddingTop: 0,
         paddingBottom: this.itemHeights.read(items.length),
       });
-      this.indexFirst = this.indexLast = 0;
+      _.extend(this._state, { indexFirst: 0, indexLast: 0 });
     }
-    if (this.invalidation & INVALIDATION_EVENTS) {
+    if (invalidation & INVALIDATION_EVENTS) {
       this.delegateEvents(eventsDOM);
       _.each(eventsListView, (handler, event) => {
         this.on(event, handler);
       });
-      this.eventsListView = eventsListView;
+      this._state.eventsListView = eventsListView;
     }
-    const invalidateItems = this.invalidation & INVALIDATION_ITEMS;
+    const invalidateItems = invalidation & INVALIDATION_ITEMS;
 
-    this.invalidation = INVALIDATION_NONE;
+    _.extend(this._state, { invalidation: INVALIDATION_NONE });
     return invalidateItems;
   }
 
@@ -180,7 +183,7 @@ class ListView extends Backbone.View {
     let invalidateItems = this._processInvalidation();
     const { items, itemTemplate } = this.options;
     const { viewport, itemHeights, $container, virtualized } = this;
-    let { indexFirst, indexLast, anchor } = this;
+    let { indexFirst, indexLast, anchor } = this._state;
 
     /**
      * The event indicates the list will start redraw.
@@ -301,9 +304,7 @@ class ListView extends Backbone.View {
     });
 
     // Write back the render state
-    this.indexFirst = indexFirst;
-    this.indexLast = indexLast;
-    this.anchor = null;
+    _.extend(this._state, { indexFirst, indexLast, anchor: null });
 
     /**
      * The event indicates the list view have completed redraw.
@@ -319,6 +320,36 @@ class ListView extends Backbone.View {
    */
   itemAt(index) {
     return _.first(this.options.items.slice(index, index + 1));
+  }
+
+  /**
+   * Get the rendered DOM element at certain index.
+   * @param {number} index The index of the item.
+   * @return {HTMLElement}
+   */
+  elementAt(index) {
+    const { indexFirst, indexLast } = this._state;
+
+    if (index < indexFirst || index >= indexLast || !this.$container) {
+      return null;
+    }
+    return this.$container.children().get(index - indexFirst);
+  }
+
+  /**
+   * The index of the first rendered item.
+   * @type {number}
+   */
+  get indexFirst() {
+    return this._state.indexFirst;
+  }
+
+  /**
+   * The index after the last rendered item.
+   * @type {number}
+   */
+  get indexLast() {
+    return this._state.indexLast;
   }
 
   /**
@@ -467,7 +498,7 @@ class ListView extends Backbone.View {
   }
 
   _invalidate(invalidation, callback) {
-    this.invalidation |= invalidation;
+    this._state.invalidation |= invalidation;
     this._scheduleRedraw();
     this.once('didRedraw', callback);
   }
@@ -542,23 +573,23 @@ class ListView extends Backbone.View {
     }
 
     if (pos === 'top') {
-      this.anchor = {
+      this._state.anchor = {
         index,
         top: visibleTop,
       };
     } else if (pos === 'bottom') {
-      this.anchor = {
+      this._state.anchor = {
         index: index + 1,
         top: visibleBot,
       };
     } else if (pos === 'middle') {
-      this.anchor = {
+      this._state.anchor = {
         index: index,
         top: (visibleTop + visibleBot + itemTop - itemBot) / 2,
         isMiddle: true,
       };
     } else if (typeof pos === 'number') {
-      this.anchor = {
+      this._state.anchor = {
         index: index,
         top: visibleTop + pos,
       };

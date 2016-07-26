@@ -64,6 +64,11 @@ describe('ListView', function () {
       expect(listView.itemAt(10)).to.deep.equal({ text: 10 });
     });
 
+    it('should be able to get the elements', function () {
+      expect(listView.elementAt(10000)).to.be.null;
+      expect(listView.elementAt(1)).to.be.an.instanceof(HTMLElement);
+    });
+
     it('should expose the listTemplate', function () {
       expect(listView.listTemplate).to.equal(listTemplate);
     });
@@ -428,6 +433,14 @@ describe('ListView', function () {
         expect(spyDidRedraw).have.been.calledOnce;
 
         await scrollToItem(1000);
+        expect(spyWillRedraw).have.been.calledTwice;
+        expect(spyDidRedraw).have.been.calledTwice;
+
+        await set({ events: {} });
+        expect(spyWillRedraw).have.been.calledTwice;
+        expect(spyDidRedraw).have.been.calledTwice;
+
+        await scrollToItem(0);
         expect(spyWillRedraw).have.been.calledTwice;
         expect(spyDidRedraw).have.been.calledTwice;
       }));
