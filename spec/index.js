@@ -407,7 +407,7 @@ describe('ListView', function () {
         checkViewportFillup();
       }));
 
-      it('should be able to reset the events', doAsync(async () => {
+      it('should be able to handle the DOM events', doAsync(async () => {
         const spy = sinon.spy();
         const events = { 'click li': spy };
 
@@ -416,6 +416,20 @@ describe('ListView', function () {
         const $ul = $('.test-container > ul');
         $ul.children().first().click();
         expect(spy).to.be.calledOnce;
+      }));
+
+      it('should be able to handle the ListView events', doAsync(async () => {
+        const spyWillRedraw = sinon.spy();
+        const spyDidRedraw = sinon.spy();
+        const events = { willRedraw: spyWillRedraw, didRedraw: spyDidRedraw };
+
+        await set({ events });
+        expect(spyWillRedraw).have.been.calledOnce;
+        expect(spyDidRedraw).have.been.calledOnce;
+
+        await scrollToItem(1000);
+        expect(spyWillRedraw).have.been.calledTwice;
+        expect(spyDidRedraw).have.been.calledTwice;
       }));
 
       it('should invoke the callback immediatedly if reset with no valid options', function () {

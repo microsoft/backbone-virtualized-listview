@@ -14,10 +14,11 @@ const whileTrue = func => {
 
 const INVALIDATION_NONE = 0;
 const INVALIDATION_ITEMS = 0x1;
-const INVALIDATION_METRICS = 0x2;
-const INVALIDATION_EVENTS = 0x4;
-const INVALIDATION_LIST = 0x8;
-const INVALIDATION_ALL = 0xf;
+const INVALIDATION_EVENTS = 0x2;
+const INVALIDATION_LIST = 0x4;
+const INVALIDATION_ALL = 0x7;
+
+const LIST_VIEW_EVENTS = ['willRedraw', 'didRedraw'];
 
 /**
  * The virtualized list view class.
@@ -64,6 +65,7 @@ class ListView extends Backbone.View {
     this.anchor = null;
     this.invalidation = INVALIDATION_NONE;
     this.removed = false;
+    this.eventsListView = {};
 
     this._scheduleRedraw = (() => {
       let requestId = null;
@@ -131,11 +133,16 @@ class ListView extends Backbone.View {
 
   _processInvalidation() {
     const { items, events, listTemplate, model } = this.options;
+    const eventsDOM = _.omit(events, LIST_VIEW_EVENTS);
+    const eventsListView = _.pick(events, LIST_VIEW_EVENTS);
 
     if (this.invalidation & INVALIDATION_EVENTS) {
       this.undelegateEvents();
+      _.each(this.eventsListView || {}, (handler, event) => {
+        this.off(event, handler);
+      });
     }
-    if (this.invalidation & INVALIDATION_METRICS) {
+    if (this.invalidation & INVALIDATION_ITEMS) {
       this._itemHeights = null;
     }
     if (this.invalidation & INVALIDATION_LIST) {
@@ -156,7 +163,11 @@ class ListView extends Backbone.View {
       this.indexFirst = this.indexLast = 0;
     }
     if (this.invalidation & INVALIDATION_EVENTS) {
-      this.delegateEvents(events);
+      this.delegateEvents(eventsDOM);
+      _.each(eventsListView, (handler, event) => {
+        this.on(event, handler);
+      });
+      this.eventsListView = eventsListView;
     }
     const invalidateItems = this.invalidation & INVALIDATION_ITEMS;
 
@@ -428,33 +439,35 @@ class ListView extends Backbone.View {
    */
   set(options = {}, callback = _.noop) {
     const isSet = key => _.has(options, key);
+    let invalidation = 0;
 
     _.extend(this.options, options);
 
     if (_.some(['model', 'listTemplate'], isSet)) {
-      this._invalidate(INVALIDATION_ALL);
+      invalidation |= INVALIDATION_ALL;
     } else {
       if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
         this._itemHeights = null;
-        this._invalidate(INVALIDATION_ITEMS);
+        invalidation |= INVALIDATION_ITEMS;
       }
       if (isSet('events')) {
-        this._invalidate(INVALIDATION_EVENTS);
+        invalidation |= INVALIDATION_EVENTS;
       }
     }
 
-    if (this.invalidation) {
-      this.once('didRedraw', callback);
-    } else if (_.isFunction(callback)) {
+    if (invalidation) {
+      this._invalidate(invalidation, callback);
+    } else {
       callback();
     }
 
     return this;
   }
 
-  _invalidate(invalidation) {
+  _invalidate(invalidation, callback) {
     this.invalidation |= invalidation;
     this._scheduleRedraw();
+    this.once('didRedraw', callback);
   }
 
   /**
@@ -462,8 +475,7 @@ class ListView extends Backbone.View {
    * @param {function} [callback] The callback to notify completion.
    */
   invalidate(callback = _.noop) {
-    this._invalidate(INVALIDATION_ITEMS);
-    this.once('didRedraw', callback);
+    this._invalidate(INVALIDATION_ITEMS, callback);
   }
 
   /**
@@ -561,8 +573,7 @@ class ListView extends Backbone.View {
    */
   render(callback = _.noop) {
     this._hookUpViewport();
-    this._invalidate(INVALIDATION_ALL);
-    this.once('didRedraw', callback);
+    this._invalidate(INVALIDATION_ALL, callback);
     return this;
   }
 
