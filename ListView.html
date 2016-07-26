@@ -88,46 +88,10 @@
         
             <div class="class-description"><p>The virtualized list view class.</p>
 <p>In addition to ordinary Backbone View options, the constructor also takes</p>
-<p><strong>model</strong>: the model object to render the skeleton of the list view.</p>
-<ul>
-<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
-</ul>
-<p><strong>listTemplate</strong>: the template to render the skeleton of the list view.</p>
-<ul>
-<li>By default, it would render a single <code>UL</code>.</li>
-<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
-<li><strong>Note</strong>: It must contain the following elements with specified class name<ul>
-<li><code>'top-filler'</code>: The filler block on top.</li>
-<li><code>'list-container'</code>: The parrent of all list items.</li>
-<li><code>'bottom-filler'</code>: The filler block at bottom.</li>
-</ul>
-</li>
-</ul>
-<p><strong>items</strong>: the model objects of the list items.</p>
-<ul>
-<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
-</ul>
-<p><strong>itemTemplate</strong>: the template to render a list item.</p>
-<ul>
-<li>By default, it would render a single <code>LI</code> filled with <code>item.text</code>.</li>
-<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
-<li><strong>Note</strong>: list items <strong>MUST NOT</strong> have outer margins, otherwise the layout
-calculation will be inaccurate.</li>
-</ul>
-<p><strong>defaultItemHeight</strong>: the estimated height of a single item.</p>
-<ul>
-<li>It's not necessary to be accurate. But the accurater it is, the less the
-scroll bar is adjusted overtime.</li>
-<li>Can be reset by <a href="ListView.html#reset">ListView#reset</a></li>
-</ul>
 <p><strong>virtualized</strong>: whether or not the virtualization is enabled.</p>
-<ul>
-<li>Cannot be reset by ListView#reset.</li>
-</ul>
 <p><strong>viewport</strong>: the CSS selector to locate the scrollable viewport.</p>
 <ul>
 <li>If it's omitted, the <code>window</code> will be used as the viewport.</li>
-<li>Cannot be reset by ListView#reset.</li>
 </ul></div>
         
     
@@ -222,198 +186,6 @@ scroll bar is adjusted overtime.</li>
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>model</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>listTemplate</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>items</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;Object></span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    []
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>itemTemplate</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="ListView.html#~cbItemTemplate">ListView~cbItemTemplate</a></span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>defaultItemHeight</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    20
-                
-                </td>
-            
-
-            <td class="description last"></td>
-        </tr>
-
     
 
         <tr>
@@ -881,6 +653,77 @@ scroll bar is adjusted overtime.</li>
             <li>
                 
 <span class="param-type"><a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span>
+
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt class="name" id="model">
+    <h4><span class="type-signature"></span>model<span class="type-signature"> :Object</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>The model object to render the skeleton of the list view.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Object</span>
 
 
 
@@ -1532,187 +1375,6 @@ scroll bar is adjusted overtime.</li>
             
 <hr>
 <dt>
-    <h4 class="name" id="reset"><span class="type-signature"></span>reset(options [, callback])</h4>
-    
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        <p>Reset the list view options. The following options can be reset</p>
-<ul>
-<li>model</li>
-<li>listTemplate</li>
-<li>items</li>
-<li>itemTemplate</li>
-<li>defaultItemHeight</li>
-<li>events</li>
-</ul>
-<p>Refer to <a href="ListView.html">ListView</a> for detail.</p>
-    </div>
-    
-
-    
-
-    
-
-    
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params table table-striped">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Argument</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>The new options.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>callback</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last"><p>The callback to notify completion.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-    
-
-    
-<dl class="details">
-    
-
-	
-
-	
-
-	
-
-    
-
-    
-
-    
-
-    
-
-	
-
-	
-
-	
-
-	
-
-	
-
-
-
-	
-
-	
-
-	
-
-	
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<hr>
-<dt>
     <h4 class="name" id="scrollToItem"><span class="type-signature"></span>scrollToItem(index [, position] [, callback])</h4>
     
     
@@ -1940,6 +1602,490 @@ otherwise, keep the viewport unchanged.</li>
     
 
     
+
+    
+</dd>
+
+        
+            
+<hr>
+<dt>
+    <h4 class="name" id="set"><span class="type-signature"></span>set(options [, callback])</h4>
+    
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        <p>Set the list view options. The following options can be set</p>
+<p><strong>model</strong>: The model object to render the skeleton of the list view.</p>
+<p><strong>listTemplate</strong>: The template to render the skeleton of the list view.</p>
+<ul>
+<li>By default, it would render a single <code>UL</code>.</li>
+<li><strong>Note</strong>: It must contain the following elements with specified class name<ul>
+<li><code>'top-filler'</code>: The filler block on top.</li>
+<li><code>'list-container'</code>: The parrent of all list items.</li>
+<li><code>'bottom-filler'</code>: The filler block at bottom.</li>
+</ul>
+</li>
+</ul>
+<p><strong>events</strong>: The events hash in form of <code>{ &quot;event selector&quot;: callback }</code>.</p>
+<ul>
+<li>Refer to <a href="http://backbonejs.org/#View-events">Backbone.View~events</a></li>
+<li><strong>Note</strong>: The callback <strong>MUST</strong> be a function. Member function names are
+not supported.</li>
+</ul>
+<p><strong>items</strong>: The model objects of the list items.</p>
+<p><strong>itemTemplate</strong>: The template to render a list item.</p>
+<ul>
+<li>By default, it would render a single <code>LI</code> filled with <code>item.text</code>.</li>
+<li><strong>Note</strong>: list items <strong>MUST NOT</strong> have outer margins, otherwise the layout
+calculation will be inaccurate.</li>
+</ul>
+<p><strong>defaultItemHeight</strong>: The estimated height of a single item.</p>
+<ul>
+<li>It's not necessary to be accurate. But the accurater it is, the less the
+scroll bar is adjusted overtime.</li>
+</ul>
+<p>Refer to <a href="ListView.html">ListView</a> for detail.</p>
+    </div>
+    
+
+    
+
+    
+
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The new options.</p>
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
+                
+
+<table class="params table table-striped">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Argument</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>listTemplate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="ListView.html#~cbListTemplate">ListView~cbListTemplate</a></span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>events</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>items</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;Object></span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    []
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>itemTemplate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="ListView.html#~cbItemTemplate">ListView~cbItemTemplate</a></span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>defaultItemHeight</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    20
+                
+                </td>
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The callback to notify completion.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    
+
+    
+<dl class="details">
+    
+
+	
+
+	
+
+	
+
+    
+
+    
+
+    
+
+    
+
+	
+
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	
+
+	
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <p>The list view itself.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="ListView.html">ListView</a></span>
+
+
+
+    </dd>
+</dl>
+
+
+        
 
     
 </dd>
@@ -2412,7 +2558,7 @@ otherwise, keep the viewport unchanged.</li>
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
 	
-		on 2016-07-26T02:41:32+08:00
+		on 2016-07-26T10:31:24+08:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
