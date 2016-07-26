@@ -471,7 +471,7 @@ class ListView extends Backbone.View {
    * @return {ListView} The list view itself.
    */
   set(options = {}, callback = _.noop) {
-    const isSet = key => _.has(options, key);
+    const isSet = key => !_.isUndefined(options[key]);
     let invalidation = 0;
 
     _.extend(this.options, options);
