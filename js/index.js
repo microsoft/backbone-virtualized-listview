@@ -145,9 +145,6 @@ class ListView extends Backbone.View {
         this.off(event, handler);
       });
     }
-    if (invalidation & INVALIDATION_ITEMS) {
-      this._itemHeights = null;
-    }
     if (invalidation & INVALIDATION_LIST) {
       this.$el.html(listTemplate(model));
       this.$container = this.$('.list-container');
@@ -480,7 +477,10 @@ class ListView extends Backbone.View {
       invalidation |= INVALIDATION_ALL;
     } else {
       if (_.some(['items', 'itemTemplate', 'defaultItemHeight'], isSet)) {
-        this._itemHeights = null;
+        if (isSet('defaultItemHeight') ||
+          this.itemHeights.maxVal !== this.length) {
+          this._itemHeights = null;
+        }
         invalidation |= INVALIDATION_ITEMS;
       }
       if (isSet('events')) {
@@ -489,6 +489,23 @@ class ListView extends Backbone.View {
     }
 
     if (invalidation) {
+      if (this.viewport) {
+        const visibleTop = this.viewport.getMetrics().outer.top;
+        const listTopCur = this.$topFiller.get(0).getBoundingClientRect().top;
+        const visibleFirst = this.itemHeights.lowerBound(visibleTop - listTopCur);
+
+        if (visibleFirst < this.length) {
+          const el = this.elementAt(visibleFirst);
+          if (el) {
+            const elTop = el.getBoundingClientRect().top;
+            this._state.anchor = {
+              index: visibleFirst,
+              top: elTop,
+            };
+          }
+        }
+      }
+
       this._invalidate(invalidation, callback);
     } else {
       callback();
