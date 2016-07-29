@@ -489,7 +489,7 @@ class ListView extends Backbone.View {
     }
 
     if (invalidation) {
-      if (this.viewport) {
+      if (this.viewport && this.$topFiller) {
         const visibleTop = this.viewport.getMetrics().outer.top;
         const listTopCur = this.$topFiller.get(0).getBoundingClientRect().top;
         const visibleFirst = this.itemHeights.lowerBound(visibleTop - listTopCur);
