@@ -469,6 +469,7 @@ class ListView extends Backbone.View {
    */
   set(options = {}, callback = _.noop) {
     const isSet = key => !_.isUndefined(options[key]);
+    const itemHeightsCur = this._itemHeights;
     let invalidation = 0;
 
     _.extend(this.options, options);
@@ -489,10 +490,10 @@ class ListView extends Backbone.View {
     }
 
     if (invalidation) {
-      if (this.viewport && this.$topFiller) {
+      if (this.viewport && this.$topFiller && itemHeightsCur) {
         const visibleTop = this.viewport.getMetrics().outer.top;
         const listTopCur = this.$topFiller.get(0).getBoundingClientRect().top;
-        const visibleFirst = this.itemHeights.lowerBound(visibleTop - listTopCur);
+        const visibleFirst = itemHeightsCur.lowerBound(visibleTop - listTopCur);
 
         if (visibleFirst < this.length) {
           const el = this.elementAt(visibleFirst);
