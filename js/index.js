@@ -202,10 +202,10 @@ class ListView extends Backbone.View {
 
       whileTrue(() => {
         const listTop = anchor ? anchor.top - itemHeights.read(anchor.index) : listTopCur;
-        const targetFirst = itemHeights.lowerBound(visibleTop - listTop);
-        const targetLast = Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length);
-        const renderFirst = virtualized ? Math.max(targetFirst - 10, 0) : 0;
-        const renderLast = virtualized ? Math.min(targetLast + 10, items.length) : items.length;
+        const targetFirst = virtualized ? itemHeights.lowerBound(visibleTop - listTop) : 0;
+        const targetLast = virtualized ? Math.min(itemHeights.upperBound(visibleBot - listTop) + 1, items.length) : items.length;
+        const renderFirst = Math.max(targetFirst - 10, 0);
+        const renderLast = Math.min(targetLast + 10, items.length);
 
         let renderMore = false;
 
