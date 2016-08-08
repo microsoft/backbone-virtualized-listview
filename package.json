@@ -1,6 +1,6 @@
 {
   "main": "dist/backbone-virtualized-listview.js",
-  "version": "0.5.4-0",
+  "version": "0.5.4-1",
   "files": [
     "dist",
     "docs"
@@ -22,10 +22,12 @@
     "name": "Wei Wei",
     "email": "wewei@microsoft.com"
   },
-  "contributors": [{
-    "name": "Wei Wei",
-    "email": "lyweiwei@outlook.com"
-  }],
+  "contributors": [
+    {
+      "name": "Wei Wei",
+      "email": "lyweiwei@outlook.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/backbone-virtualized-listview.git"
