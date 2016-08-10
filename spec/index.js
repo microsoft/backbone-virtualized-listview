@@ -363,12 +363,12 @@ describe('ListView', function () {
         const text = 'hello world!';
 
         await set({ items: [{ text }] });
-        expect($ul.children().length).to.equal(1);
+        expect($ul.children().length).to.equal(3);
         expect($ul.children().text()).to.equal(text);
 
         await set({ items: [] });
         expect($ul.length).to.equal(1);
-        expect($ul.children().length).to.equal(0);
+        expect($ul.children().length).to.equal(2);
       }));
 
       it('should be able to use duck typed array as items', doAsync(async () => {
@@ -383,7 +383,7 @@ describe('ListView', function () {
             },
           },
         });
-        expect($ul.children().first().text()).to.equal(`${prefix} 0`);
+        expect($ul.children().first().next().text()).to.equal(`${prefix} 0`);
         checkViewportFillup();
       }));
 
@@ -407,8 +407,8 @@ describe('ListView', function () {
         await set({ itemTemplate });
 
         const $ul = $('.test-container > ul');
-        expect($ul.children().length).to.be.at.least(1);
-        expect($ul.children().first().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
+        expect($ul.children().length).to.be.at.least(3);
+        expect($ul.children().first().next().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
         checkViewportFillup();
       }));
 
@@ -419,7 +419,7 @@ describe('ListView', function () {
         await set({ events });
 
         const $ul = $('.test-container > ul');
-        $ul.children().first().click();
+        $ul.children().first().next().click();
         expect(spy).to.be.calledOnce;
       }));
 
@@ -454,11 +454,11 @@ describe('ListView', function () {
 
       it('should be able to invalidate the rendered items', doAsync(async () => {
         const $ul = $('.test-container > ul');
-        const elFirst = $ul.children().get(0);
+        const elFirst = $ul.children().get(1);
 
         await new Promise(resolve => listView.invalidate(resolve));
 
-        const elFirstNew = $ul.children().get(0);
+        const elFirstNew = $ul.children().get(1);
         expect(elFirstNew).not.to.equal(elFirst);
       }));
     };
@@ -535,8 +535,8 @@ describe('ListView', function () {
     it('should render all items initially', function () {
       const $ul = $('.test-container > ul');
 
-      expect($ul.children().length).to.equal(count);
-      expect($ul.children().first().text()).to.equal('0');
+      expect($ul.children().length).to.equal(count + 2);
+      expect($ul.children().first().next().text()).to.equal('0');
     });
 
     it('should keep the DOM unchanged after scrolling', doAsync(

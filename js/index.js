@@ -147,13 +147,6 @@ class ListView extends Backbone.View {
     }
     if (invalidation & INVALIDATION_LIST) {
       this.$el.html(listTemplate(model));
-      this.$container = this.$('.list-container');
-      this.$container.css({
-        marginTop: 0,
-        marginBottom: 0,
-        paddingTop: 0,
-        paddingBottom: 0,
-      });
       this.$topFiller = this.$('.top-filler');
       this.$bottomFiller = this.$('.bottom-filler');
       this._applyPaddings({
@@ -179,7 +172,7 @@ class ListView extends Backbone.View {
   _redraw() {
     let invalidateItems = this._processInvalidation();
     const { items, itemTemplate } = this.options;
-    const { viewport, itemHeights, $container, virtualized } = this;
+    const { viewport, itemHeights, $topFiller, $bottomFiller, virtualized } = this;
     let { indexFirst, indexLast, anchor } = this._state;
 
     /**
@@ -211,7 +204,7 @@ class ListView extends Backbone.View {
 
         // Clean up
         if (targetFirst >= indexLast || targetLast <= indexFirst || invalidateItems) {
-          $container.empty();
+          $topFiller.nextUntil($bottomFiller).remove();
           indexFirst = indexLast = targetFirst;
           if (targetFirst !== targetLast && items.length > 0) {
             renderMore = true;
@@ -230,15 +223,15 @@ class ListView extends Backbone.View {
 
         // Render top
         if (targetFirst < indexFirst) {
-          $container.prepend(items.slice(renderFirst, indexFirst).map(itemTemplate));
-          $container.children().slice(0, indexFirst - renderFirst).each((offset, el) => {
+          $topFiller.after(items.slice(renderFirst, indexFirst).map(itemTemplate));
+          $topFiller.nextUntil($bottomFiller).slice(0, indexFirst - renderFirst).each((offset, el) => {
             itemHeights.writeSingle(renderFirst + offset, el.getBoundingClientRect().height);
           });
           indexFirst = renderFirst;
           renderMore = renderTop = true;
         } else if (renderBot && !renderTop && renderFirst > indexFirst) {
           const removal = [];
-          $container.children().slice(0, renderFirst - indexFirst).each((offset, el) => removal.push(el));
+          $topFiller.nextUntil($bottomFiller).slice(0, renderFirst - indexFirst).each((offset, el) => removal.push(el));
           $(removal).remove();
           indexFirst = renderFirst;
           renderMore = true;
@@ -246,15 +239,15 @@ class ListView extends Backbone.View {
 
         // Render bottom
         if (targetLast > indexLast) {
-          $container.append(items.slice(indexLast, renderLast).map(itemTemplate));
-          $container.children().slice(indexLast - indexFirst).each((offset, el) => {
+          $bottomFiller.before(items.slice(indexLast, renderLast).map(itemTemplate));
+          $topFiller.nextUntil($bottomFiller).slice(indexLast - indexFirst).each((offset, el) => {
             itemHeights.writeSingle(indexLast + offset, el.getBoundingClientRect().height);
           });
           indexLast = renderLast;
           renderMore = renderBot = true;
         } else if (renderTop && !renderBot && renderLast < indexLast) {
           const removal = [];
-          $container.children().slice(renderLast - indexFirst).each((offset, el) => removal.push(el));
+          $topFiller.nextUntil($bottomFiller).slice(renderLast - indexFirst).each((offset, el) => removal.push(el));
           $(removal).remove();
           indexLast = renderLast;
           renderMore = true;
@@ -327,10 +320,10 @@ class ListView extends Backbone.View {
   elementAt(index) {
     const { indexFirst, indexLast } = this._state;
 
-    if (index < indexFirst || index >= indexLast || !this.$container) {
+    if (index < indexFirst || index >= indexLast || !this.$topFiller || !this.$bottomFiller) {
       return null;
     }
-    return this.$container.children().get(index - indexFirst);
+    return this.$topFiller.nextUntil(this.$bottomFiller).get(index - indexFirst);
   }
 
   /**
@@ -429,9 +422,10 @@ class ListView extends Backbone.View {
    * __listTemplate__: The template to render the skeleton of the list view.
    *
    *  * By default, it would render a single `UL`.
-   *  * __Note__: It must contain the following elements with specified class name
+   *  * __Note__: It must contain the following elements with specified class
+   *    names as the first and last siblings of the list items. All list items
+   *    will be rendered in between.
    *    * `'top-filler'`: The filler block on top.
-   *    * `'list-container'`: The parrent of all list items.
    *    * `'bottom-filler'`: The filler block at bottom.
    *
    * __events__: The events hash in form of `{ "event selector": callback }`.
@@ -547,7 +541,7 @@ class ListView extends Backbone.View {
    *
    */
   scrollToItem(...args) {
-    if (!this.$container) {
+    if (!this.$topFiller || !this.$bottomFiller) {
       throw new Error('Cannot scroll before the view is rendered');
     }
     let index = 0;
