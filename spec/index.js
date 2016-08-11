@@ -6,7 +6,8 @@ import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import ListView from '../js/index.js';
 import template from './test-container.jade';
-import testListTemplate from './test-list.jade';
+import initialListTemplate from './initial-list.jade';
+import alternativeListTemplate from './alternative-list.jade';
 import { doAsync, sleep } from './test-util.js';
 
 chai.use(sinonChai);
@@ -17,6 +18,10 @@ const redrawInterval = 100;
 
 describe('ListView', function () {
   let listView = null;
+
+  function render() {
+    return new Promise(resolve => listView.render(resolve));
+  }
 
   beforeEach(function () {
     $('body').html(template(this.currentTest));
@@ -34,7 +39,7 @@ describe('ListView', function () {
     const count = 20000;
 
     const model = { title: 'Test Properties' };
-    const listTemplate = testListTemplate;
+    const listTemplate = alternativeListTemplate;
     const itemTemplate = item => `<li>${item.text}</li>`;
     const defaultItemHeight = 18;
 
@@ -47,8 +52,8 @@ describe('ListView', function () {
         model,
         itemTemplate,
         defaultItemHeight,
-      }).render();
-      await sleep(redrawInterval);
+      });
+      await render();
     }));
 
     afterEach(doAsync(async () => {
@@ -56,7 +61,7 @@ describe('ListView', function () {
       await sleep(redrawInterval);
     }));
 
-    it('should expose the lenght of the list', function () {
+    it('should expose the length of the list', function () {
       expect(listView.length).to.equal(count);
     });
 
@@ -94,7 +99,9 @@ describe('ListView', function () {
         el: '.test-container',
       }).set({
         items: _.map(_.range(count), i => ({ text: i })),
-      }).render();
+      });
+
+      await render();
       listView.viewport.scrollTo({ y: 0 });
       await sleep(redrawInterval);
     }));
@@ -136,7 +143,7 @@ describe('ListView', function () {
   }
 
   function checkViewportFillup() {
-    const items = $('.test-container > ul > li');
+    const items = $('.test-container > .internal-viewport > ul > li');
     const [rectFirst, rectLast] = [
       items.first(),
       items.last(),
@@ -157,7 +164,7 @@ describe('ListView', function () {
     expect(index).to.be.at.least(listView.indexFirst);
     expect(index).to.be.below(listView.indexLast);
 
-    const el = $('.test-container > ul > li').get(index - listView.indexFirst);
+    const el = $('.test-container > .internal-viewport > ul > li').get(index - listView.indexFirst);
     return el.getBoundingClientRect();
   }
 
@@ -204,7 +211,7 @@ describe('ListView', function () {
     return function () {
       beforeEach(doAsync(async () => {
         listView = viewFactory({ size: 20000 });
-        listView.render();
+        await render();
         listView.viewport.scrollTo({ y: 0 });
         await sleep(redrawInterval);
       }));
@@ -216,11 +223,11 @@ describe('ListView', function () {
 
       it('should create the ListView correctly', function () {
         expect($('.test-container').get(0)).to.equal(listView.el);
-        expect($('.test-container > ul > li').length).to.be.above(0);
+        expect($('.test-container > .internal-viewport > ul > li').length).to.be.above(0);
       });
 
       it('should fill up the viewport', function () {
-        const elLast = $('.test-container > ul > li').last().get(0);
+        const elLast = $('.test-container > .internal-viewport > ul > li').last().get(0);
         const rectLast = elLast.getBoundingClientRect();
         const height = viewportMetrics().outer.height;
 
@@ -359,7 +366,7 @@ describe('ListView', function () {
       }));
 
       it('should be able to reset the items', doAsync(async () => {
-        const $ul = $('.test-container > ul');
+        const $ul = $('.test-container > .internal-viewport > ul');
         const text = 'hello world!';
 
         await set({ items: [{ text }] });
@@ -372,7 +379,7 @@ describe('ListView', function () {
       }));
 
       it('should be able to use duck typed array as items', doAsync(async () => {
-        const $ul = $('.test-container > ul');
+        const $ul = $('.test-container > .internal-viewport > ul');
         const prefix = 'item';
 
         await set({
@@ -390,7 +397,7 @@ describe('ListView', function () {
       it('should be able to reset the model and listTemplate', doAsync(async () => {
         const title = 'New Template';
         const model = { title };
-        const listTemplate = testListTemplate;
+        const listTemplate = alternativeListTemplate;
 
         await set({ model, listTemplate });
 
@@ -406,7 +413,7 @@ describe('ListView', function () {
 
         await set({ itemTemplate });
 
-        const $ul = $('.test-container > ul');
+        const $ul = $('.test-container > .internal-viewport > ul');
         expect($ul.children().length).to.be.at.least(3);
         expect($ul.children().first().next().text()).to.be.equal(`${prefix} - ${listView.itemAt(0).text}`);
         checkViewportFillup();
@@ -418,7 +425,7 @@ describe('ListView', function () {
 
         await set({ events });
 
-        const $ul = $('.test-container > ul');
+        const $ul = $('.test-container > .internal-viewport > ul');
         $ul.children().first().next().click();
         expect(spy).to.be.calledOnce;
       }));
@@ -453,7 +460,7 @@ describe('ListView', function () {
       });
 
       it('should be able to invalidate the rendered items', doAsync(async () => {
-        const $ul = $('.test-container > ul');
+        const $ul = $('.test-container > .internal-viewport > ul');
         const elFirst = $ul.children().get(1);
 
         await new Promise(resolve => listView.invalidate(resolve));
@@ -467,6 +474,7 @@ describe('ListView', function () {
   describe('with WindowViewport', getTestCases(({ size }) => new ListView({
     el: '.test-container',
   }).set({
+    listTemplate: initialListTemplate,
     items: _.map(_.range(size), i => ({ text: i })),
   })));
 
@@ -477,8 +485,8 @@ describe('ListView', function () {
     });
     return new ListView({
       el: '.test-container',
-      viewport: '.test-container',
     }).set({
+      listTemplate: initialListTemplate,
       items: _.map(_.range(size), i => ({ text: i })),
     });
   }));
@@ -490,26 +498,36 @@ describe('ListView', function () {
     });
     return new ListView({
       el: '.test-container',
-      viewport: '.test-container',
     }).set({
+      listTemplate: initialListTemplate,
       items: _.map(_.range(size), i => ({
         text: `${i}: ${_.map(_.range(_.random(50)), () => _.random(9)).join('')}`,
       })),
     });
   }));
 
+  describe('with internal viewport', getTestCases(({ size }) => new ListView({
+    el: '.test-container',
+    viewport: '.internal-viewport',
+  }).set({
+    model: { title: 'Internal Viewport' },
+    listTemplate: initialListTemplate,
+    items: _.map(_.range(size), i => ({ text: i })),
+  })));
+
   describe('Non-virtualized list view', function () {
     const count = 500;
 
-    beforeEach(function (done) {
+    beforeEach(doAsync(async () => {
       listView = new ListView({
         el: '.test-container',
         virtualized: false,
       }).set({
+        listTemplate: initialListTemplate,
         items: _.map(_.range(count), i => ({ text: i })),
       });
-      listView.render(done);
-    });
+      await render();
+    }));
 
     afterEach(doAsync(async () => {
       listView.remove();
@@ -517,12 +535,12 @@ describe('ListView', function () {
     }));
 
     async function checkDOMUnchanged(action) {
-      const $ul = $('.test-container > ul');
+      const $ul = $('.test-container > .internal-viewport > ul');
       const elFirst = $ul.children().first().get(0);
       const elLast = $ul.children().last().get(0);
 
       await action(function () {
-        const $ulNew = $('.test-container > ul');
+        const $ulNew = $('.test-container > .internal-viewport > ul');
         const elFirstNew = $ulNew.children().get(0);
         const elLastNew = $ulNew.children().last().get(0);
 
@@ -533,7 +551,7 @@ describe('ListView', function () {
     }
 
     it('should render all items initially', function () {
-      const $ul = $('.test-container > ul');
+      const $ul = $('.test-container > .internal-viewport > ul');
 
       expect($ul.children().length).to.equal(count + 2);
       expect($ul.children().first().next().text()).to.equal('0');

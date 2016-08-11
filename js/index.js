@@ -27,13 +27,18 @@ const LIST_VIEW_EVENTS = ['willRedraw', 'didRedraw'];
  *
  * __virtualized__: whether or not the virtualization is enabled.
  *
- * __viewport__: the CSS selector to locate the scrollable viewport.
+ * __viewport__: the option locate the scrollable viewport. It can be
  *
- *  * If it's omitted, the `window` will be used as the viewport.
+ *  * Omitted, auto detect the closest ancestor of the `$el` with 'overflowY'
+ *    style being 'auto' or 'scroll'. Use the window viewport if found none.
+ *  * A `string`, use it as a selector to select an __internal__ element as
+ *    the viewport.
+ *  * An `HTMLElement` or `jQuery`, use it as the viewport element.
+ *  * The `window`, use the window viewport.
  *
  * @param {Object} options The constructor options.
  * @param {boolean} [options.virtualized=true]
- * @param {string} [options.viewport]
+ * @param {string | HTMLElement | jQuery | window} [options.viewport]
  *
  */
 
@@ -42,12 +47,12 @@ class ListView extends Backbone.View {
   /**
    * Backbone view initializer
    * @see ListView
-   *
    */
   initialize({
     virtualized = true,
     viewport = null,
   } = {}) {
+    this._props = { virtualized, viewport };
     this.options = {
       model: {},
       listTemplate: defaultListTemplate,
@@ -56,8 +61,6 @@ class ListView extends Backbone.View {
       itemTemplate: defaultItemTemplate,
       defaultItemHeight: 20,
     };
-
-    this.virtualized = virtualized;
 
     // States
     this._state = {
@@ -69,50 +72,70 @@ class ListView extends Backbone.View {
       eventsListView: {},
     };
 
-    this._scheduleRedraw = (() => {
-      let requestId = null;
+    this._scheduleRedraw = _.noop;
+  }
 
-      return () => {
-        if (this.viewport && !requestId) {
-          requestId = window.requestAnimationFrame(() => {
-            requestId = null;
-            if (!this._state.removed) {
-              this._redraw();
-            }
-          });
+  _initViewport() {
+    const viewport = this._props.viewport;
+
+    if (_.isString(viewport)) {
+      return new ElementViewport(this.$(viewport));
+    } else if (viewport instanceof $) {
+      if (viewport.get(0) === window) {
+        return new WindowViewport();
+      }
+      return new ElementViewport(viewport);
+    } else if (viewport instanceof HTMLElement) {
+      return new ElementViewport(viewport);
+    } else if (viewport === window) {
+      return new WindowViewport();
+    }
+
+    let $el = this.$el;
+    while ($el.length > 0 && !$el.is(document)) {
+      if (_.contains(['auto', 'scroll'], $el.css('overflowY'))) {
+        return new ElementViewport($el);
+      }
+      $el = $el.parent();
+    }
+    return new WindowViewport();
+  }
+
+  _hookUpViewport() {
+    this.viewport = this._initViewport();
+
+    if (this.virtualized) {
+      let blockUntil = 0;
+
+      const onViewportChange = () => {
+        if (performance.now() > blockUntil) {
+          this._scheduleRedraw();
+        } else if (!this._state.removed) {
+          // If the scroll events are blocked, we shouldn't just swallow them.
+          // Wait for 0.1 second and give another try.
+          window.setTimeout(onViewportChange, 100);
         }
       };
-    })();
 
-    this._hookUpViewport = () => {
-      this.viewport = viewport ? new ElementViewport(viewport) : new WindowViewport();
+      this.viewport.on('change', onViewportChange);
 
-      if (this.virtualized) {
-        let blockUntil = 0;
+      //
+      // On keypress, we want to block the scroll events for 0.2 second to wait
+      // for the animation to complete. Otherwise, the scroll would change the
+      // geometry metrics and break the animation. The worst thing we may get is,
+      // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
+      //
+      this.viewport.on('keypress', () => {
+        blockUntil = performance.now() + 200;
+      });
+    }
+  }
 
-        const onViewportChange = () => {
-          if (performance.now() > blockUntil) {
-            this._scheduleRedraw();
-          } else if (!this._state.removed) {
-            // If the scroll events are blocked, we shouldn't just swallow them.
-            // Wait for 0.1 second and give another try.
-            window.setTimeout(onViewportChange, 100);
-          }
-        };
-
-        this.viewport.on('change', onViewportChange);
-
-        //
-        // On keypress, we want to block the scroll events for 0.2 second to wait
-        // for the animation to complete. Otherwise, the scroll would change the
-        // geometry metrics and break the animation. The worst thing we may get is,
-        // for 'HOME' and 'END' keys, the view doesn't scroll to the right position.
-        //
-        this.viewport.on('keypress', () => {
-          blockUntil = performance.now() + 200;
-        });
-      }
-    };
+  /**
+   * Whether or not the list view is virtualized
+   */
+  get virtualized() {
+    return this._props.virtualized;
   }
 
   /**
@@ -146,7 +169,15 @@ class ListView extends Backbone.View {
       });
     }
     if (invalidation & INVALIDATION_LIST) {
+      const isInternalViewport = _.isString(this._props.viewport);
+      if (isInternalViewport && this.viewport) {
+        this.viewport.remove();
+        this.viewport = null;
+      }
       this.$el.html(listTemplate(model));
+      if (!this.viewport) {
+        this._hookUpViewport();
+      }
       this.$topFiller = this.$('.top-filler');
       this.$bottomFiller = this.$('.bottom-filler');
       this._applyPaddings({
@@ -182,7 +213,7 @@ class ListView extends Backbone.View {
     this.trigger('willRedraw');
 
     whileTrue(() => {
-      let isCompleted = true;
+      let isCompleted = invalidateItems || items.length > 0;
 
       const metricsViewport = viewport.getMetrics();
       const visibleTop = metricsViewport.outer.top;
@@ -619,7 +650,19 @@ class ListView extends Backbone.View {
    * @param {function} [callback] The callback to notify completion.
    */
   render(callback = _.noop) {
-    this._hookUpViewport();
+    let requestId = null;
+
+    this._scheduleRedraw = () => {
+      if (!requestId) {
+        requestId = window.requestAnimationFrame(() => {
+          requestId = null;
+          if (!this._state.removed) {
+            this._redraw();
+          }
+        });
+      }
+    };
+    // this._hookUpViewport();
     this._invalidate(INVALIDATION_ALL, callback);
     return this;
   }

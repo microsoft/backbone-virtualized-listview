@@ -105,12 +105,15 @@ export class WindowViewport extends Viewport {
   }
 }
 
+const SCROLLABLE = ['auto', 'scroll'];
+
 export class ElementViewport extends Viewport {
   constructor(el) {
     super($(el));
 
     this.el = this.$el.get(0);
-    this.el.style.overflow = 'auto';
+    this.$el.css('overflowX', s => _.contains(SCROLLABLE, s) ? s : 'auto');
+    this.$el.css('overflowY', s => _.contains(SCROLLABLE, s) ? s : 'auto');
   }
 
   getMetrics() {
