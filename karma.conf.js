@@ -9,11 +9,11 @@ function getWebpackConfig() {
     test: /\.js$/,
     include: path.resolve('./js/'),
     loader: 'babel',
-  }, /*{
+  }, { 
     test: /\.js$/,
     include: path.resolve('./js/'),
     loader: 'isparta',
-  }*/, {
+  }, {
     test: /sinon\.js$/,
     loader: 'imports?define=>false,require=>false',
   }].concat(webpackConfig.module.preLoaders || []);
