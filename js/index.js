@@ -206,6 +206,10 @@ class ListView extends Backbone.View {
     const { viewport, itemHeights, $topFiller, $bottomFiller, virtualized } = this;
     let { indexFirst, indexLast, anchor } = this._state;
 
+    if (!invalidateItems && items.length === 0) {
+      return;
+    }
+
     /**
      * The event indicates the list will start redraw.
      * @event ListView#willRedraw
@@ -213,7 +217,7 @@ class ListView extends Backbone.View {
     this.trigger('willRedraw');
 
     whileTrue(() => {
-      let isCompleted = invalidateItems || items.length > 0;
+      let isCompleted = true;
 
       const metricsViewport = viewport.getMetrics();
       const visibleTop = metricsViewport.outer.top;
