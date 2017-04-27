@@ -13,6 +13,10 @@ function getElementMetrics(el) {
   ]);
 }
 
+function calculateRatio(scroll, scrollMax) {
+  return scrollMax > 0 ? Math.min(Math.max(scroll / scrollMax, 0), 1) : 0;
+}
+
 export class Viewport {
   constructor($el) {
     _.extend(this, Backbone.Events);
@@ -98,8 +102,8 @@ export class WindowViewport extends Viewport {
       y: window.scrollY,
     };
 
-    scroll.ratioX = scroll.x > 0 ? scroll.x / (inner.width - outer.width) : 0;
-    scroll.ratioY = scroll.y > 0 ? scroll.y / (inner.height - outer.height) : 0;
+    scroll.ratioX = calculateRatio(scroll.x, inner.width - outer.width);
+    scroll.ratioY = calculateRatio(scroll.y, inner.height - outer.height);
 
     return { inner, outer, scroll };
   }
@@ -131,8 +135,8 @@ export class ElementViewport extends Viewport {
     inner.right = inner.left + inner.width;
     inner.bottom = inner.top + inner.height;
 
-    scroll.ratioX = scroll.x > 0 ? scroll.x / (inner.width - outer.width) : 0;
-    scroll.ratioY = scroll.y > 0 ? scroll.y / (inner.height - outer.height) : 0;
+    scroll.ratioX = calculateRatio(scroll.x, inner.width - outer.width);
+    scroll.ratioY = calculateRatio(scroll.y, inner.height - outer.height);
 
     return { outer, inner, scroll };
   }
