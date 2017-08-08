@@ -546,7 +546,7 @@ class ListView extends Backbone.View {
 
   _invalidate(invalidation, callback) {
     this._state.invalidation |= invalidation;
-    this._scheduleRedraw();
+    _.defer(this._redraw.bind(this));
     this.once('didRedraw', callback);
   }
 
