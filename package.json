@@ -1,6 +1,6 @@
 {
   "main": "dist/backbone-virtualized-listview.js",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "files": [
     "dist",
     "docs"
