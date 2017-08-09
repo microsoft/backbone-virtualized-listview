@@ -654,26 +654,28 @@ class ListView extends Backbone.View {
    * @param {function} [callback] The callback to notify completion.
    */
   render(callback = _.noop) {
-    let cancel = _.noop;
+    let animationFrameId = null;
+    let timeoutId = null;
 
     const redraw = () => {
-      cancel = _.noop;
+      animationFrameId = null;
+      timeoutId = null;
       if (!this._state.removed) {
         this._redraw();
       }
     };
 
     this._scheduleRedraw = (ignoreAnimationFrame = false) => {
-      cancel();
-
-      if (ignoreAnimationFrame) {
-        const timeoutId = window.setTimeout(redraw, 0);
-
-        cancel = _.once(() => window.clearTimeout(timeoutId));
-      } else {
-        const requestId = window.requestAnimationFrame(redraw);
-
-        cancel = _.once(() => window.cancelAnimationFrame(requestId));
+      if (!timeoutId) {
+        if (ignoreAnimationFrame) {
+          timeoutId = window.setTimeout(redraw, 0);
+          if (animationFrameId) {
+            window.cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+          }
+        } else if (!animationFrameId) {
+          animationFrameId = window.requestAnimationFrame(redraw);
+        }
       }
     };
     // this._hookUpViewport();
