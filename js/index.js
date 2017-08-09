@@ -546,7 +546,7 @@ class ListView extends Backbone.View {
 
   _invalidate(invalidation, callback) {
     this._state.invalidation |= invalidation;
-    _.defer(this._redraw.bind(this));
+    this._scheduleRedraw(true);
     this.once('didRedraw', callback);
   }
 
@@ -655,14 +655,23 @@ class ListView extends Backbone.View {
    */
   render(callback = _.noop) {
     let requestId = null;
+    const redraw = () => {
+      if (!this._state.removed) {
+        this._redraw();
+      }
+    };
 
-    this._scheduleRedraw = () => {
-      if (!requestId) {
+    this._scheduleRedraw = (ignoreAnimationFrame = false) => {
+      if (ignoreAnimationFrame) {
+        if (requestId) {
+          window.cancelAnimationFrame(requestId);
+          requestId = null;
+        }
+        _.defer(redraw);
+      } else if (!requestId) {
         requestId = window.requestAnimationFrame(() => {
           requestId = null;
-          if (!this._state.removed) {
-            this._redraw();
-          }
+          redraw();
         });
       }
     };
