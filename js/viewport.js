@@ -98,8 +98,8 @@ export class WindowViewport extends Viewport {
     };
 
     const scroll = {
-      x: window.scrollX,
-      y: window.scrollY,
+      x: window.pageXOffset,
+      y: window.pageYOffset,
     };
 
     scroll.ratioX = calculateRatio(scroll.x, inner.width - outer.width);
