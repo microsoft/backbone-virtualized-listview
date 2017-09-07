@@ -12,6 +12,15 @@ const whileTrue = func => {
   while (func());
 };
 
+// performance.now polyfill
+// does not work in IE9 which has performance but does not have performance.now
+window.performance = (window.performance || {
+    offset: Date.now(),
+    now: function now(){
+        return Date.now() - this.offset;
+    }
+});
+
 const INVALIDATION_NONE = 0;
 const INVALIDATION_ITEMS = 0x1;
 const INVALIDATION_EVENTS = 0x2;
